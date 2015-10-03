@@ -6,7 +6,7 @@ module Main where
   import Scanner
 
   scan = do
-    [inputFile, outputFile] <- getArgs
+    [inputFile] <- getArgs
     input <- LBS.readFile inputFile
     let tokens = scanTokens input
     forM tokens $ putStrLn . show
