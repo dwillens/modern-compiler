@@ -40,6 +40,7 @@ scanner :-
   "then"                { \p s -> Tokens.Then (pos p) }
   "else"                { \p s -> Tokens.Else (pos p) }
   "of"                  { \p s -> Tokens.Of (pos p) }
+  "nil"                 { \p s -> Tokens.Nil (pos p) }
 
   -- Operators
   ","                   { \p s -> Tokens.Comma (pos p) }

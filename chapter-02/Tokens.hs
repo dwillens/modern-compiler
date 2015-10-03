@@ -15,6 +15,7 @@ module Tokens where
     | Then Position
     | Else Position
     | Of Position
+    | Nil Position
 
     | Comma Position
     | Colon Position
