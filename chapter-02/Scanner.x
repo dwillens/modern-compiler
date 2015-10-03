@@ -12,13 +12,17 @@ import Data.ByteString.Lazy.Char8 as L
 
 $digit = 0-9
 $letter = [a-zA-Z]
+$quote = "
+
+$star = \*
+$slash = \/
 
 @whitespace = $white+
-@comments = "/*" ([^\*]|\*[^\/])+ "*/"
+@comments = "/*" (~$star | $star ~$slash)+ "*/"
 
 @integer = $digit+
-@identifier = $letter[_$letter$digit]+
-
+@identifier = $letter [_ $letter $digit]+
+@string = $quote ~$quote* $quote
 scanner :-
   @whitespace           ;
   @comments             ;
@@ -34,17 +38,25 @@ scanner :-
   "of"                  { \p s -> Tokens.Of (pos p) }
 
   -- Operators
+  ","                   { \p s -> Tokens.Comma (pos p) }
   ":"                   { \p s -> Tokens.Colon (pos p) }
+  ";"                   { \p s -> Tokens.Semicolon (pos p) }
   "["                   { \p s -> Tokens.LeftBracket (pos p) }
   "]"                   { \p s -> Tokens.RightBracket (pos p) }
+  "{"                   { \p s -> Tokens.LeftBrace (pos p) }
+  "}"                   { \p s -> Tokens.RightBrace (pos p) }
+  "."                   { \p s -> Tokens.Dot (pos p) }
   "="                   { \p s -> Tokens.Equal (pos p) }
   ":="                  { \p s -> Tokens.Assign (pos p) }
 
   -- Other
   @integer              { \p s -> Tokens.Int (pos p) $ read $ L.unpack s }
+  @string               { \p s -> Tokens.String (pos p) $ stringOf s}
   @identifier           { \p s -> Tokens.Identifier (pos p) $ L.unpack s }
-
 {
+
+stringOf :: L.ByteString -> String
+stringOf = L.unpack . L.tail . L.init
 
 pos :: AlexPosn -> Tokens.Position
 pos (AlexPn offset line col) = Tokens.Position offset line col
