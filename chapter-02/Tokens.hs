@@ -15,12 +15,12 @@ module Tokens where
     | Comma Position
     | Colon Position
     | Semicolon Position
-    | LeftBracket Position
-    | RightBracket Position
-    | LeftBrace Position
-    | RightBrace Position
-    | Dot Position
-    | Equal Position
+    | BeginSubscript Position
+    | EndSubscript Position
+    | BeginRecord Position
+    | EndRecord Position
+    | Member Position
+    | Equals Position
     | Assign Position
 
     | Int Position Integer

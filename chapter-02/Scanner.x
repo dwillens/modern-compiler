@@ -21,7 +21,7 @@ $slash = \/
 @comments = "/*" (~$star | $star ~$slash)+ "*/"
 
 @integer = $digit+
-@identifier = $letter [_ $letter $digit]+
+@identifier = $letter [_ $letter $digit]*
 @string = $quote ~$quote* $quote
 scanner :-
   @whitespace           ;
@@ -41,12 +41,12 @@ scanner :-
   ","                   { \p s -> Tokens.Comma (pos p) }
   ":"                   { \p s -> Tokens.Colon (pos p) }
   ";"                   { \p s -> Tokens.Semicolon (pos p) }
-  "["                   { \p s -> Tokens.LeftBracket (pos p) }
-  "]"                   { \p s -> Tokens.RightBracket (pos p) }
-  "{"                   { \p s -> Tokens.LeftBrace (pos p) }
-  "}"                   { \p s -> Tokens.RightBrace (pos p) }
-  "."                   { \p s -> Tokens.Dot (pos p) }
-  "="                   { \p s -> Tokens.Equal (pos p) }
+  "["                   { \p s -> Tokens.BeginSubscript (pos p) }
+  "]"                   { \p s -> Tokens.EndSubscript (pos p) }
+  "{"                   { \p s -> Tokens.BeginRecord (pos p) }
+  "}"                   { \p s -> Tokens.EndRecord (pos p) }
+  "."                   { \p s -> Tokens.Member (pos p) }
+  "="                   { \p s -> Tokens.Equals (pos p) }
   ":="                  { \p s -> Tokens.Assign (pos p) }
 
   -- Other
