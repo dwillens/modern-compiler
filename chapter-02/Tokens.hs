@@ -3,4 +3,5 @@ module Tokens where
     deriving (Eq, Show)
 
   data Token = Int Position Integer
+             | While Position
     deriving (Eq, Show)

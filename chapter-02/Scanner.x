@@ -16,6 +16,7 @@ $whitespace = [\t\n ]
 scanner :-
   $white+               ;
   $digit+               { \p s -> Tokens.Int (pos p) $ read $ L.unpack s }
+  "while"               { \p s -> Tokens.While (pos p) }
 
 {
 
