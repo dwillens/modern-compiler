@@ -28,12 +28,13 @@ module Tokens where
     | EndRecord Position
     | Member Position
     | Minus Position
+    | Plus Position
     | Times Position
     | Equals Position
     | Assign Position
 
-    | Int Position Integer
-    | String Position String
-    | Identifier Position String
+    | Int Integer Position
+    | String String Position
+    | Identifier String Position
 
     deriving (Eq, Show)

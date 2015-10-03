@@ -28,40 +28,41 @@ scanner :-
   @comments             ;
 
   -- Reserved words
-  "while"               { \p s -> Tokens.While (pos p) }
-  "let"                 { \p s -> Tokens.Let (pos p) }
-  "in"                  { \p s -> Tokens.In (pos p) }
-  "end"                 { \p s -> Tokens.End (pos p) }
-  "function"            { \p s -> Tokens.Function (pos p) }
-  "var"                 { \p s -> Tokens.Var (pos p) }
-  "type"                { \p s -> Tokens.Type (pos p) }
-  "array"               { \p s -> Tokens.Array (pos p) }
-  "if"                  { \p s -> Tokens.If (pos p) }
-  "then"                { \p s -> Tokens.Then (pos p) }
-  "else"                { \p s -> Tokens.Else (pos p) }
-  "of"                  { \p s -> Tokens.Of (pos p) }
-  "nil"                 { \p s -> Tokens.Nil (pos p) }
+  "while"               { \p s -> Tokens.While $ pos p }
+  "let"                 { \p s -> Tokens.Let $ pos p }
+  "in"                  { \p s -> Tokens.In $ pos p }
+  "end"                 { \p s -> Tokens.End $ pos p }
+  "function"            { \p s -> Tokens.Function $ pos p }
+  "var"                 { \p s -> Tokens.Var $ pos p }
+  "type"                { \p s -> Tokens.Type $ pos p }
+  "array"               { \p s -> Tokens.Array $ pos p }
+  "if"                  { \p s -> Tokens.If $ pos p }
+  "then"                { \p s -> Tokens.Then $ pos p }
+  "else"                { \p s -> Tokens.Else $ pos p }
+  "of"                  { \p s -> Tokens.Of $ pos p }
+  "nil"                 { \p s -> Tokens.Nil $ pos p }
 
   -- Operators
-  ","                   { \p s -> Tokens.Comma (pos p) }
-  ":"                   { \p s -> Tokens.Colon (pos p) }
-  ";"                   { \p s -> Tokens.Semicolon (pos p) }
-  "("                   { \p s -> Tokens.LeftParen (pos p) }
-  ")"                   { \p s -> Tokens.RightParen (pos p) }
-  "["                   { \p s -> Tokens.BeginSubscript (pos p) }
-  "]"                   { \p s -> Tokens.EndSubscript (pos p) }
-  "{"                   { \p s -> Tokens.BeginRecord (pos p) }
-  "}"                   { \p s -> Tokens.EndRecord (pos p) }
-  "."                   { \p s -> Tokens.Member (pos p) }
-  "-"                   { \p s -> Tokens.Minus (pos p) }
-  "*"                   { \p s -> Tokens.Times (pos p) }
-  "="                   { \p s -> Tokens.Equals (pos p) }
-  ":="                  { \p s -> Tokens.Assign (pos p) }
+  ","                   { \p s -> Tokens.Comma $ pos p }
+  ":"                   { \p s -> Tokens.Colon $ pos p }
+  ";"                   { \p s -> Tokens.Semicolon $ pos p }
+  "("                   { \p s -> Tokens.LeftParen $ pos p }
+  ")"                   { \p s -> Tokens.RightParen $ pos p }
+  "["                   { \p s -> Tokens.BeginSubscript $ pos p }
+  "]"                   { \p s -> Tokens.EndSubscript $ pos p }
+  "{"                   { \p s -> Tokens.BeginRecord $ pos p }
+  "}"                   { \p s -> Tokens.EndRecord $ pos p }
+  "."                   { \p s -> Tokens.Member $ pos p }
+  "+"                   { \p s -> Tokens.Plus $ pos p }
+  "-"                   { \p s -> Tokens.Minus $ pos p }
+  "*"                   { \p s -> Tokens.Times $ pos p }
+  "="                   { \p s -> Tokens.Equals $ pos p }
+  ":="                  { \p s -> Tokens.Assign $ pos p }
 
   -- Other
-  @integer              { \p s -> Tokens.Int (pos p) $ read $ L.unpack s }
-  @string               { \p s -> Tokens.String (pos p) $ stringOf s}
-  @identifier           { \p s -> Tokens.Identifier (pos p) $ L.unpack s }
+  @integer              { \p s -> Tokens.Int (read $ L.unpack s) $ pos p }
+  @string               { \p s -> Tokens.String (stringOf s) $ pos p }
+  @identifier           { \p s -> Tokens.Identifier (L.unpack s) $ pos p }
 {
 
 stringOf :: L.ByteString -> String
