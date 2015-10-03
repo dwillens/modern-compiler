@@ -1,5 +1,6 @@
 {
 module Scanner (scan) where
+  import
 }
 
 %wrapper "basic"
@@ -11,4 +12,6 @@ scanner :-
   $white+               ;
   $digit+               { \s -> TokenInt $ read s }
 
+{
 
+}
