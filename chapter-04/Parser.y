@@ -76,81 +76,81 @@ Program
 
 Declaration
   : TypeDeclaration
-    { () }
+    { AST.TypeDeclaration }
   | VariableDeclaration
-    { () }
+    { AST.VariableDeclaration }
   | FunctionDeclaration
-    { () }
+    { AST.FunctionDeclaration }
 
 DeclarationList
   : Declaration
-    { [] }
+    { [$1] }
   | DeclarationList Declaration
-    { [] }
+    { $1 ++ [$2] }
 
 Expression
   : String
-    { AST.Unit }
+    { AST.UnitExpression }
   | Int
-    { AST.Unit }
+    { AST.UnitExpression }
   | Nil
-    { AST.Unit }
+    { AST.UnitExpression }
   | Lvalue
-    { AST.Unit }
+    { AST.UnitExpression }
   | Identifier
-    { AST.VarExp $ AST.SimpleVar $1 }
+    { AST.VariableExpression $ AST.SimpleVariable $1 }
   | Minus Expression %prec UnaryMinus
-    { AST.Unit }
+    { AST.UnitExpression }
   | Expression Plus Expression
-    { AST.Unit }
+    { AST.UnitExpression }
   | Expression Minus Expression
-    { AST.Unit }
+    { AST.UnitExpression }
   | Expression Times Expression
-    { AST.Unit }
+    { AST.UnitExpression }
   | Expression Divide Expression
-    { AST.Unit }
+    { AST.UnitExpression }
   | Expression Equals Expression
-    { AST.Unit }
+    { AST.UnitExpression }
   | Expression NotEquals Expression
-    { AST.Unit }
+    { AST.UnitExpression }
   | Expression Less Expression
-    { AST.Unit }
+    { AST.UnitExpression }
   | Expression Greater Expression
-    { AST.Unit }
+    { AST.UnitExpression }
   | Expression LessOrEquals Expression
-    { AST.Unit }
+    { AST.UnitExpression }
   | Expression GreaterOrEquals Expression
-    { AST.Unit }
+    { AST.UnitExpression }
   | Expression And Expression
-    { AST.Unit }
+    { AST.UnitExpression }
   | Expression Or Expression
-    { AST.Unit }
+    { AST.UnitExpression }
   | Lvalue Assign Expression
-    { AST.Unit }
+    { AST.UnitExpression }
   | Identifier Assign Expression
-    { AST.Unit }
+    { AST.UnitExpression }
   | Identifier LeftParen ExpressionList RightParen
-    { AST.Unit }
+    { AST.UnitExpression }
   | LeftParen RightParen
-    { AST.Unit }
+    { AST.UnitExpression }
   | LeftParen ExpressionSequence RightParen
-    { AST.Unit }
+    { AST.UnitExpression }
   | Identifier BeginRecord EndRecord
-    { AST.Unit }
+    { AST.UnitExpression }
   | Identifier BeginRecord FieldList EndRecord
-    { AST.Unit }
+    { AST.UnitExpression }
   | Identifier BeginSubscript Expression EndSubscript Of Expression
-    { AST.Unit }
+    { AST.UnitExpression }
   | If Expression Then Expression
-    { AST.Unit }
+    { AST.UnitExpression }
   | If Expression Then Expression Else Expression
-    { AST.Unit }
+    { AST.UnitExpression }
   | While Expression Do Expression
-    { AST.Unit }
+    { AST.UnitExpression }
   | For Identifier Assign Expression To Expression Do Expression
-    { AST.Unit }
+    { AST.UnitExpression }
   | Break
-    { AST.Unit }
+    { AST.UnitExpression }
   | Let DeclarationList In ExpressionSequence End
     { AST.Let $2 $4 }
 
