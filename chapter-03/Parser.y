@@ -57,6 +57,14 @@ import Tokens
   Identifier            { Tokens.Identifier $$ _ }
 
 %%
+Program
+  : Expression
+    { () }
+
+BinaryOperator
+  : Greater
+    { () }
+
 Declaration
   : TypeDeclaration
     { () }
@@ -72,9 +80,25 @@ DeclarationList
     { () }
 
 Expression
-  : Int Greater Int
+  : String
     { () }
   | Int
+    { () }
+  | Nil
+    { () }
+  | Lvalue
+    { () }
+  | Identifier
+    { () }
+  | Minus Expression
+    { () }
+  | Expression BinaryOperator Expression
+    { () }
+  | Identifier BeginSubscript Expression EndSubscript Of Expression
+    { () }
+  | If LeftParen Expression RightParen Then Expression Else Expression
+    { () }
+  | Let DeclarationList In ExpressionSequence End
     { () }
 
 ExpressionSequence
@@ -86,19 +110,21 @@ ExpressionSequence
 FunctionDeclaration
   : Function Identifier LeftParen TypeFields RightParen Equals Expression
     { () }
-  | Function Identifier LeftParen TypeFields RightParen Colon TypeId Equals Expression
+  | Function Identifier LeftParen TypeFields RightParen Colon Identifier Equals Expression
     { () }
 
-IfExpression
-  : If LeftParen Expression RightParen Then Expression Else Expression
+Lvalue
+  : Lvalue Member Identifier
     { () }
-
-LetExpression
-  : Let DeclarationList In ExpressionSequence End
+  | Identifier Member Identifier
+    { () }
+  | Lvalue BeginSubscript Expression EndSubscript
+    { () }
+  | Identifier BeginSubscript Expression EndSubscript
     { () }
 
 TypeField
-  : Identifier Colon TypeId
+  : Identifier Colon Identifier
     { () }
 
 TypeFields
@@ -107,16 +133,12 @@ TypeFields
   | TypeFields Comma TypeField
     { () }
 
-TypeId
-  : Identifier
-    { () }
-
 Ty
-  : TypeId
+  : Identifier
     { () }
   | BeginRecord TypeFields EndRecord
     { () }
-  | Array Of TypeId
+  | Array Of Identifier
     { () }
 
 TypeDeclaration
@@ -126,12 +148,12 @@ TypeDeclaration
 VariableDeclaration
   : Var Identifier Assign Expression
     { () }
-  | Var Identifier Colon TypeId Assign Expression
+  | Var Identifier Colon Identifier Assign Expression
     { () }
 
 {
 
 parseError :: [Tokens.Token] -> a
-parseError ts = error $ "Could not parse" ++ show ts
+parseError ts = error $ "Could not parse"
 
 }
