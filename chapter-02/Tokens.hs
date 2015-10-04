@@ -4,6 +4,9 @@ module Tokens where
 
   data Token =
       While Position
+    | For Position
+    | To Position
+    | Break Position
     | Let Position
     | In Position
     | End Position
@@ -14,6 +17,7 @@ module Tokens where
     | If Position
     | Then Position
     | Else Position
+    | Do Position
     | Of Position
     | Nil Position
 
@@ -30,8 +34,15 @@ module Tokens where
     | Minus Position
     | Plus Position
     | Times Position
+    | Divide Position
     | Equals Position
+    | NotEquals Position
+    | Less Position
+    | LessOrEquals Position
     | Greater Position
+    | GreaterOrEquals Position
+    | And Position
+    | Or Position
     | Assign Position
 
     | Int Integer Position

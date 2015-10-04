@@ -29,6 +29,9 @@ scanner :-
 
   -- Reserved words
   "while"               { \p s -> Tokens.While $ pos p }
+  "for"                 { \p s -> Tokens.For $ pos p }
+  "to"                  { \p s -> Tokens.To $ pos p }
+  "break"               { \p s -> Tokens.Break $ pos p }
   "let"                 { \p s -> Tokens.Let $ pos p }
   "in"                  { \p s -> Tokens.In $ pos p }
   "end"                 { \p s -> Tokens.End $ pos p }
@@ -39,6 +42,7 @@ scanner :-
   "if"                  { \p s -> Tokens.If $ pos p }
   "then"                { \p s -> Tokens.Then $ pos p }
   "else"                { \p s -> Tokens.Else $ pos p }
+  "do"                  { \p s -> Tokens.Do $ pos p }
   "of"                  { \p s -> Tokens.Of $ pos p }
   "nil"                 { \p s -> Tokens.Nil $ pos p }
 
@@ -56,8 +60,15 @@ scanner :-
   "+"                   { \p s -> Tokens.Plus $ pos p }
   "-"                   { \p s -> Tokens.Minus $ pos p }
   "*"                   { \p s -> Tokens.Times $ pos p }
+  "/"                   { \p s -> Tokens.Divide $ pos p }
   "="                   { \p s -> Tokens.Equals $ pos p }
+  "<>"                  { \p s -> Tokens.NotEquals $ pos p }
+  "<"                   { \p s -> Tokens.Less $ pos p }
+  "<="                  { \p s -> Tokens.LessOrEquals $ pos p }
   ">"                   { \p s -> Tokens.Greater $ pos p }
+  ">="                  { \p s -> Tokens.GreaterOrEquals $ pos p }
+  "&"                   { \p s -> Tokens.And $ pos p }
+  "|"                   { \p s -> Tokens.Or $ pos p }
   ":="                  { \p s -> Tokens.Assign $ pos p }
 
   -- Other
