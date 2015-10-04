@@ -31,6 +31,7 @@ module Tokens where
     | Plus Position
     | Times Position
     | Equals Position
+    | Greater Position
     | Assign Position
 
     | Int Integer Position

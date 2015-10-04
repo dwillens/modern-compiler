@@ -57,6 +57,7 @@ scanner :-
   "-"                   { \p s -> Tokens.Minus $ pos p }
   "*"                   { \p s -> Tokens.Times $ pos p }
   "="                   { \p s -> Tokens.Equals $ pos p }
+  ">"                   { \p s -> Tokens.Greater $ pos p }
   ":="                  { \p s -> Tokens.Assign $ pos p }
 
   -- Other
