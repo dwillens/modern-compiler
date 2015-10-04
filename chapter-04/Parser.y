@@ -116,47 +116,62 @@ DeclarationList
 
 Expression
   : String
-    { AST.UnitExpression }
+    { AST.StringExpression $1 }
+
   | Int
     { AST.IntegerExpression $1 }
+
   | Nil
     { AST.UnitExpression }
+
   | Lvalue
     { AST.UnitExpression }
   | Identifier
     { AST.VariableExpression (AST.SimpleVariable $1) }
+
   | Minus Expression %prec UnaryMinus
     { AST.UnitExpression }
+
   | BinaryOperatorExpression
     { $1 }
+
   | Lvalue Assign Expression
-    { AST.UnitExpression }
+    { AST.AssignExpression $1 $3 }
   | Identifier Assign Expression
-    { AST.UnitExpression }
+    { AST.AssignExpression (AST.SimpleVariable $1) $3 }
+
   | Identifier LeftParen ExpressionList RightParen
     { AST.UnitExpression }
+
   | LeftParen RightParen
     { AST.UnitExpression }
   | LeftParen ExpressionSequence RightParen
     { AST.UnitExpression }
+
   | Identifier BeginRecord EndRecord
-    { AST.UnitExpression }
+    { AST.RecordExpression $1 [] }
   | Identifier BeginRecord FieldList EndRecord
-    { AST.UnitExpression }
+    { AST.RecordExpression $1 $3 }
+
   | Identifier BeginSubscript Expression EndSubscript Of Expression
     { AST.ArrayExpression $1 $3 $6 }
+
   | If Expression Then Expression
     { AST.UnitExpression }
   | If Expression Then Expression Else Expression
     { AST.UnitExpression }
+
   | While Expression Do Expression
     { AST.UnitExpression }
+
   | For Identifier Assign Expression To Expression Do Expression
     { AST.UnitExpression }
+
   | Break
     { AST.UnitExpression }
+
   | Let DeclarationList In ExpressionSequence End
-    { AST.Let $2 $4 }
+    { AST.LetExpression $2 $4 }
 
 ExpressionList
   : Expression
@@ -172,9 +187,9 @@ ExpressionSequence
 
 FieldList
   : Identifier Equals Expression
-    { () }
+    { [($1, $3)] }
   | FieldList Comma Identifier Equals Expression
-    { () }
+    { $1 ++ [($3, $5)] }
 
 FunctionDeclaration
   : Function Identifier LeftParen TypeFields RightParen Equals Expression
@@ -184,29 +199,29 @@ FunctionDeclaration
 
 Lvalue
   : Lvalue Member Identifier
-    { () }
+    { AST.FieldVariable $1 $3 }
   | Identifier Member Identifier
-    { () }
+    { AST.FieldVariable (AST.SimpleVariable $1) $3 }
   | Lvalue BeginSubscript Expression EndSubscript
-    { () }
+    { AST.SubscriptVariable $1 $3 }
   | Identifier BeginSubscript Expression EndSubscript
-    { () }
+    { AST.SubscriptVariable (AST.SimpleVariable $1) $3 }
 
 TypeField
   : Identifier Colon Identifier
-    { () }
+    { AST.Field $1 $3 }
 
 TypeFields
   : TypeField
-    { () }
+    { [$1] }
   | TypeFields Comma TypeField
-    { () }
+    { $1 ++ [$3] }
 
 Ty
   : Identifier
-    { AST.NamedType }
+    { AST.NamedType $1 }
   | BeginRecord TypeFields EndRecord
-    { AST.RecordType }
+    { AST.RecordType $2 }
   | Array Of Identifier
     { AST.ArrayType $3 }
 

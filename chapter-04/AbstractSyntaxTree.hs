@@ -6,13 +6,21 @@ module AbstractSyntaxTree where
 
   data Variable =
       SimpleVariable Symbol
-    | UnitVariable
+    | FieldVariable Variable Symbol
+    | SubscriptVariable Variable Expression
     deriving (Eq, Show, Generic, Out)
 
   data Expression =
       VariableExpression Variable
     | IntegerExpression Integer
-    | Let [Declaration] [Expression]
+    | StringExpression String
+    | RecordExpression {recordType :: Symbol
+                       ,recordFields :: [(Symbol, Expression)]
+                       }
+    | AssignExpression {assignVariable :: Variable
+                       ,assignExpression :: Expression
+                       }
+    | LetExpression [Declaration] [Expression]
     | ArrayExpression {arrayType :: Symbol
                       ,arraySize :: Expression
                       ,arrayInit :: Expression
@@ -32,7 +40,13 @@ module AbstractSyntaxTree where
     deriving (Eq, Show, Generic, Out)
 
   data Type =
-      NamedType
-    | RecordType
+      NamedType Symbol
+    | RecordType [Field]
     | ArrayType Symbol
+    deriving (Eq, Show, Generic, Out)
+
+  data Field =
+      Field {fieldName :: Symbol
+            ,fieldType :: Symbol
+            }
     deriving (Eq, Show, Generic, Out)
