@@ -19,7 +19,7 @@ executable Tiger
   main-is:             Main.hs
   other-modules:       Scanner, Parser
   other-extensions:    CPP
-  build-depends:       base, array, bytestring
+  build-depends:       base, array, bytestring, pretty, GenericPretty
   -- hs-source-dirs:
   build-tools:         alex, happy
   default-language:    Haskell2010

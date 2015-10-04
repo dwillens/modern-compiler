@@ -74,34 +74,8 @@ Program
   : Expression
     { $1 }
 
-Declaration
-  : TypeDeclaration
-    { AST.TypeDeclaration }
-  | VariableDeclaration
-    { AST.VariableDeclaration }
-  | FunctionDeclaration
-    { AST.FunctionDeclaration }
-
-DeclarationList
-  : Declaration
-    { [$1] }
-  | DeclarationList Declaration
-    { $1 ++ [$2] }
-
-Expression
-  : String
-    { AST.UnitExpression }
-  | Int
-    { AST.UnitExpression }
-  | Nil
-    { AST.UnitExpression }
-  | Lvalue
-    { AST.UnitExpression }
-  | Identifier
-    { AST.VariableExpression $ AST.SimpleVariable $1 }
-  | Minus Expression %prec UnaryMinus
-    { AST.UnitExpression }
-  | Expression Plus Expression
+BinaryOperatorExpression
+  : Expression Plus Expression
     { AST.UnitExpression }
   | Expression Minus Expression
     { AST.UnitExpression }
@@ -125,6 +99,36 @@ Expression
     { AST.UnitExpression }
   | Expression Or Expression
     { AST.UnitExpression }
+
+Declaration
+  : TypeDeclaration
+    { $1 }
+  | VariableDeclaration
+    { $1 }
+  | FunctionDeclaration
+    { AST.FunctionDeclaration }
+
+DeclarationList
+  : Declaration
+    { [$1] }
+  | DeclarationList Declaration
+    { $1 ++ [$2] }
+
+Expression
+  : String
+    { AST.UnitExpression }
+  | Int
+    { AST.IntegerExpression $1 }
+  | Nil
+    { AST.UnitExpression }
+  | Lvalue
+    { AST.UnitExpression }
+  | Identifier
+    { AST.VariableExpression (AST.SimpleVariable $1) }
+  | Minus Expression %prec UnaryMinus
+    { AST.UnitExpression }
+  | BinaryOperatorExpression
+    { $1 }
   | Lvalue Assign Expression
     { AST.UnitExpression }
   | Identifier Assign Expression
@@ -140,7 +144,7 @@ Expression
   | Identifier BeginRecord FieldList EndRecord
     { AST.UnitExpression }
   | Identifier BeginSubscript Expression EndSubscript Of Expression
-    { AST.UnitExpression }
+    { AST.ArrayExpression $1 $3 $6 }
   | If Expression Then Expression
     { AST.UnitExpression }
   | If Expression Then Expression Else Expression
@@ -162,9 +166,9 @@ ExpressionList
 
 ExpressionSequence
   : Expression
-    { [] }
+    { [$1] }
   | ExpressionSequence Semicolon Expression
-    { [] }
+    { $1 ++ [$3] }
 
 FieldList
   : Identifier Equals Expression
@@ -200,21 +204,21 @@ TypeFields
 
 Ty
   : Identifier
-    { () }
+    { AST.NamedType }
   | BeginRecord TypeFields EndRecord
-    { () }
+    { AST.RecordType }
   | Array Of Identifier
-    { () }
+    { AST.ArrayType $3 }
 
 TypeDeclaration
   : Type Identifier Equals Ty
-    { () }
+    { AST.TypeDeclaration $2 $4 }
 
 VariableDeclaration
   : Var Identifier Assign Expression
-    { () }
+    { AST.VariableDeclaration $2 Nothing $4 }
   | Var Identifier Colon Identifier Assign Expression
-    { () }
+    { AST.VariableDeclaration $2 (Just $4) $6 }
 
 {
 
