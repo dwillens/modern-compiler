@@ -1,7 +1,8 @@
 {
 module Parser(makeParseTree) where
 
-import Tokens
+import qualified Tokens
+import qualified AbstractSyntaxTree as AST
 }
 -- TODO Add error handling.
 -- TODO Make the parser/lexer monadic so parse errors can have line numbers.
@@ -71,7 +72,7 @@ import Tokens
 %%
 Program
   : Expression
-    { () }
+    { $1 }
 
 Declaration
   : TypeDeclaration
@@ -83,75 +84,75 @@ Declaration
 
 DeclarationList
   : Declaration
-    { () }
+    { [] }
   | DeclarationList Declaration
-    { () }
+    { [] }
 
 Expression
   : String
-    { () }
+    { AST.Unit }
   | Int
-    { () }
+    { AST.Unit }
   | Nil
-    { () }
+    { AST.Unit }
   | Lvalue
-    { () }
+    { AST.Unit }
   | Identifier
-    { () }
+    { AST.VarExp $ AST.SimpleVar $1 }
   | Minus Expression %prec UnaryMinus
-    { () }
+    { AST.Unit }
   | Expression Plus Expression
-    { () }
+    { AST.Unit }
   | Expression Minus Expression
-    { () }
+    { AST.Unit }
   | Expression Times Expression
-    { () }
+    { AST.Unit }
   | Expression Divide Expression
-    { () }
+    { AST.Unit }
   | Expression Equals Expression
-    { () }
+    { AST.Unit }
   | Expression NotEquals Expression
-    { () }
+    { AST.Unit }
   | Expression Less Expression
-    { () }
+    { AST.Unit }
   | Expression Greater Expression
-    { () }
+    { AST.Unit }
   | Expression LessOrEquals Expression
-    { () }
+    { AST.Unit }
   | Expression GreaterOrEquals Expression
-    { () }
+    { AST.Unit }
   | Expression And Expression
-    { () }
+    { AST.Unit }
   | Expression Or Expression
-    { () }
+    { AST.Unit }
   | Lvalue Assign Expression
-    { () }
+    { AST.Unit }
   | Identifier Assign Expression
-    { () }
+    { AST.Unit }
   | Identifier LeftParen ExpressionList RightParen
-    { () }
+    { AST.Unit }
   | LeftParen RightParen
-    { () }
+    { AST.Unit }
   | LeftParen ExpressionSequence RightParen
-    { () }
+    { AST.Unit }
   | Identifier BeginRecord EndRecord
-    { () }
+    { AST.Unit }
   | Identifier BeginRecord FieldList EndRecord
-    { () }
+    { AST.Unit }
   | Identifier BeginSubscript Expression EndSubscript Of Expression
-    { () }
+    { AST.Unit }
   | If Expression Then Expression
-    { () }
+    { AST.Unit }
   | If Expression Then Expression Else Expression
-    { () }
+    { AST.Unit }
   | While Expression Do Expression
-    { () }
+    { AST.Unit }
   | For Identifier Assign Expression To Expression Do Expression
-    { () }
+    { AST.Unit }
   | Break
-    { () }
+    { AST.Unit }
   | Let DeclarationList In ExpressionSequence End
-    { () }
+    { AST.Let $2 $4 }
 
 ExpressionList
   : Expression
@@ -161,9 +162,9 @@ ExpressionList
 
 ExpressionSequence
   : Expression
-    { () }
+    { [] }
   | ExpressionSequence Semicolon Expression
-    { () }
+    { [] }
 
 FieldList
   : Identifier Equals Expression
