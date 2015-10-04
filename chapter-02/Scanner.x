@@ -18,11 +18,14 @@ $star = \*
 $slash = \/
 
 @whitespace = $white+
+-- TODO: Recognize nested and multi-line comments.
 @comments = "/*" (~$star | $star ~$slash)+ "*/"
 
 @integer = $digit+
 @identifier = $letter [_ $letter $digit]*
+-- TODO: Recognize and interpret escape sequences.
 @string = $quote ~$quote* $quote
+
 scanner :-
   @whitespace           ;
   @comments             ;
