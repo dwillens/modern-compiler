@@ -3,6 +3,8 @@ module Parser(makeParseTree) where
 
 import Tokens
 }
+-- TODO Add error handling.
+-- TODO Make the parser/lexer monadic so parse errors can have line numbers.
 
 %name makeParseTree
 %tokentype { Tokens.Token }
