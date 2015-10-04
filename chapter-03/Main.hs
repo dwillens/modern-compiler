@@ -19,4 +19,5 @@ module Main where
     forM tokens $ putStrLn . show
     let parseTree = makeParseTree tokens
     putStrLn $ show parseTree
+
   main = parse
