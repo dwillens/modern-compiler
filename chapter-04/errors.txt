@@ -1,1 +1,1 @@
-../tiger/testcases/test49.tig
+Skipping ../tiger/testcases/test49.tig (expecting parse error)
