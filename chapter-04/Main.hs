@@ -16,7 +16,7 @@ module Main where
     [inputFile] <- getArgs
     input <- LBS.readFile inputFile
     let tokens = scanTokens input
-    forM tokens $ putStrLn . show
+    --forM tokens $ putStrLn . show
     let parseTree = makeParseTree tokens
     putStrLn $ show parseTree
 
