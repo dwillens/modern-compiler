@@ -4,6 +4,7 @@
 
 module Scanner (scanTokens) where
 
+import Position
 import Tokens
 import Data.ByteString.Lazy.Char8 as L
 }
@@ -83,8 +84,8 @@ scanner :-
 stringOf :: L.ByteString -> String
 stringOf = L.unpack . L.tail . L.init
 
-pos :: AlexPosn -> Tokens.Position
-pos (AlexPn offset line col) = Tokens.Position offset line col
+pos :: AlexPosn -> Position
+pos (AlexPn offset line col) = Position offset line col
 
 scanTokens :: L.ByteString -> [Tokens.Token]
 scanTokens = alexScanTokens
