@@ -18,8 +18,8 @@ $star = \*
 $slash = \/
 
 @whitespace = $white+
--- TODO: Recognize nested and multi-line comments.
-@comments = "/*" (~$star | $star ~$slash)+ "*/"
+-- TODO: Recognize nested comments.
+@comments = "/*" (~$star | $star ~$slash | $white)+ "*/"
 
 @integer = $digit+
 @identifier = $letter [_ $letter $digit]*

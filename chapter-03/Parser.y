@@ -62,7 +62,29 @@ Program
     { () }
 
 BinaryOperator
-  : Greater
+  : Plus
+    { () }
+  | Minus
+    { () }
+  | Times
+    { () }
+  | Divide
+    { () }
+  | Equals
+    { () }
+  | NotEquals
+    { () }
+  | Less
+    { () }
+  | Greater
+    { () }
+  | LessOrEquals
+    { () }
+  | GreaterOrEquals
+    { () }
+  | And
+    { () }
+  | Or
     { () }
 
 Declaration
@@ -94,17 +116,51 @@ Expression
     { () }
   | Expression BinaryOperator Expression
     { () }
+  | Lvalue Assign Expression
+    { () }
+  | Identifier Assign Expression
+    { () }
+  | Identifier LeftParen ExpressionList RightParen
+    { () }
+  | LeftParen RightParen
+    { () }
+  | LeftParen ExpressionSequence RightParen
+    { () }
+  | Identifier BeginRecord EndRecord
+    { () }
+  | Identifier BeginRecord FieldList EndRecord
+    { () }
   | Identifier BeginSubscript Expression EndSubscript Of Expression
     { () }
-  | If LeftParen Expression RightParen Then Expression Else Expression
+  | If Expression Then Expression
+    { () }
+  | If Expression Then Expression Else Expression
+    { () }
+  | While Expression Do Expression
+    { () }
+  | For Identifier Assign Expression To Expression Do Expression
+    { () }
+  | Break
     { () }
   | Let DeclarationList In ExpressionSequence End
+    { () }
+
+ExpressionList
+  : Expression
+    { () }
+  | ExpressionList Comma Expression
     { () }
 
 ExpressionSequence
   : Expression
     { () }
   | ExpressionSequence Semicolon Expression
+    { () }
+
+FieldList
+  : Identifier Equals Expression
+    { () }
+  | FieldList Comma Identifier Equals Expression
     { () }
 
 FunctionDeclaration
