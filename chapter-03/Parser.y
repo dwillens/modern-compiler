@@ -8,6 +8,16 @@ import Tokens
 %tokentype { Tokens.Token }
 %error { parseError }
 
+%nonassoc Then Do Of
+%nonassoc Else
+%left Assign
+%left Or
+%left And
+%nonassoc Equals NotEquals Less Greater LessOrEquals GreaterOrEquals
+%left Plus Minus
+%left Times Divide
+%nonassoc UnaryMinus
+
 %token
   While                 { Tokens.While _ }
   For                   { Tokens.For _ }
@@ -61,32 +71,6 @@ Program
   : Expression
     { () }
 
-BinaryOperator
-  : Plus
-    { () }
-  | Minus
-    { () }
-  | Times
-    { () }
-  | Divide
-    { () }
-  | Equals
-    { () }
-  | NotEquals
-    { () }
-  | Less
-    { () }
-  | Greater
-    { () }
-  | LessOrEquals
-    { () }
-  | GreaterOrEquals
-    { () }
-  | And
-    { () }
-  | Or
-    { () }
-
 Declaration
   : TypeDeclaration
     { () }
@@ -112,9 +96,31 @@ Expression
     { () }
   | Identifier
     { () }
-  | Minus Expression
+  | Minus Expression %prec UnaryMinus
     { () }
-  | Expression BinaryOperator Expression
+  | Expression Plus Expression
+    { () }
+  | Expression Minus Expression
+    { () }
+  | Expression Times Expression
+    { () }
+  | Expression Divide Expression
+    { () }
+  | Expression Equals Expression
+    { () }
+  | Expression NotEquals Expression
+    { () }
+  | Expression Less Expression
+    { () }
+  | Expression Greater Expression
+    { () }
+  | Expression LessOrEquals Expression
+    { () }
+  | Expression GreaterOrEquals Expression
+    { () }
+  | Expression And Expression
+    { () }
+  | Expression Or Expression
     { () }
   | Lvalue Assign Expression
     { () }
