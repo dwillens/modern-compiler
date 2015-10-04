@@ -1,0 +1,17 @@
+2.1a:   c*(a[abc]*)?
+2.1b:   ([bc]*a[bc]*a[bc]*)*
+2.1c:   [01]*00
+2.1d:   let b = [01] in 1(1bbbb|011bb|0101b)b*
+2.1e:
+2.1f:   let d = [1-9], o = [1-7] in (0[0o]*|d[0d]*)
+2.1g:   0|1|10
+
+2.2a:   no way to count
+2.2b:   no way to remember
+2.2c:   no way to count
+
+2.3a:   4-digit binary numbers that aren't 0110
+2.3b:   strings of 1+4n 'a's
+2.3c:   multiples of 11 (3)
+
+
