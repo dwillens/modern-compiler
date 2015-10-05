@@ -5,6 +5,7 @@
 module Scanner (getToken
                ,runScanner
                ,reportError
+               ,listTokens
                ,Alex(..)
                ) where
 
@@ -12,9 +13,10 @@ import Position
 import Tokens
 
 import GHC.Int
-import Data.ByteString.Lazy.Char8 as L
+import qualified Data.ByteString.Lazy.Char8 as L
 
 import Control.Monad(ap, liftM)
+import Control.Monad.Loops(untilM)
 
 }
 
@@ -103,6 +105,14 @@ stringOf (_, _, s) n = L.unpack $ L.drop 1 $ L.take (fromIntegral n - 1) s
 identifierOf :: AlexInput -> Int64 -> String
 identifierOf (_, _, s) n = L.unpack $ L.take (fromIntegral n) s
 
+
+listTokens :: L.ByteString -> Either String [Tokens.Token]
+listTokens input = runAlex input gather
+  where gather :: Alex [Tokens.Token]
+        gather = untilM alexMonadScan (alexGetInput >>= isEOF)
+        isEOF :: AlexInput -> Alex Bool
+        isEOF (_, _, s) = return $ L.null s
+
 runScanner :: L.ByteString -> Alex a -> Either String a
 runScanner = runAlex
 
@@ -111,6 +121,7 @@ getToken = (alexMonadScan >>=)
 
 reportError :: String -> Alex a
 reportError = alexError
+
 
 alexEOF :: Alex Tokens.Token
 alexEOF = return Tokens.EOF

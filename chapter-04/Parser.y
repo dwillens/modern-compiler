@@ -8,7 +8,6 @@ import qualified Tokens
 import qualified AbstractSyntaxTree as AST
 }
 -- TODO Add error handling.
--- TODO Make the parser/lexer monadic so parse errors can have line numbers.
 
 %name parse
 %tokentype { Tokens.Token }
@@ -220,8 +219,11 @@ VariableDeclaration
 runParser :: L.ByteString -> Either String AST.Expression
 runParser input = Scanner.runScanner input parse
 
+reportError :: String -> Scanner.Alex a
+reportError = Scanner.reportError
+
 parseError :: Tokens.Token -> Scanner.Alex a
 parseError token =
-  Scanner.reportError ("Could not parse at " ++ show token)
+  reportError ("Could not parse at " ++ show token)
 
 }
