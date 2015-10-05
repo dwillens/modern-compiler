@@ -14,13 +14,20 @@ module AbstractSyntaxTree where
       VariableExpression Variable
     | IntegerExpression Integer
     | StringExpression String
+    | CallExpression Symbol [Expression]
+    | ArithmeticExpression ArithmeticOperator Expression Expression
+    | ComparisonExpression ComparisonOperator Expression Expression
     | RecordExpression {recordType :: Symbol
                        ,recordFields :: [(Symbol, Expression)]
                        }
     | AssignExpression {assignVariable :: Variable
                        ,assignExpression :: Expression
                        }
-    | LetExpression [Declaration] [Expression]
+    | IfExpression {ifTest :: Expression
+                   ,ifThen :: Expression
+                   ,ifElse :: Maybe Expression
+                   }
+    | LetExpression [DeclarationGroup] [Expression]
     | ArrayExpression {arrayType :: Symbol
                       ,arraySize :: Expression
                       ,arrayInit :: Expression
@@ -28,16 +35,37 @@ module AbstractSyntaxTree where
     | UnitExpression
     deriving (Eq, Show, Generic, Out)
 
-  data Declaration =
-      FunctionDeclaration
+  data ArithmeticOperator = Add | Subtract | Multiply | Divide
+    deriving (Eq, Show, Generic, Out)
+
+  data ComparisonOperator = Equals | NotEquals
+                          | Less | LessOrEquals
+                          | Greater | GreaterOrEquals
+    deriving (Eq, Show, Generic, Out)
+
+  data DeclarationGroup =
+      FunctionDeclarationGroup [FunctionDeclaration]
     | VariableDeclaration {vdName :: Symbol
                           ,vdType :: Maybe Symbol
                           ,vdInit :: Expression
                           }
-    | TypeDeclaration {tdName :: Symbol
+    | TypeDeclarationGroup [TypeDeclaration]
+    deriving (Eq, Show, Generic, Out)
+
+  data FunctionDeclaration =
+      FunctionDeclaration {functionName :: Symbol
+                          ,functionParams :: [Field]
+                          ,functionResult :: Maybe Symbol
+                          ,functionBody :: Expression
+                          }
+    deriving (Eq, Show, Generic, Out)
+
+  data TypeDeclaration =
+      TypeDeclaration {tdName :: Symbol
                       ,tdType :: Type
                       }
     deriving (Eq, Show, Generic, Out)
+
 
   data Type =
       NamedType Symbol

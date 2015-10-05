@@ -76,42 +76,44 @@ Program
 
 BinaryOperatorExpression
   : Expression Plus Expression
-    { AST.UnitExpression }
+    { AST.ArithmeticExpression AST.Add $1 $3}
   | Expression Minus Expression
-    { AST.UnitExpression }
+    { AST.ArithmeticExpression AST.Subtract $1 $3 }
   | Expression Times Expression
-    { AST.UnitExpression }
+    { AST.ArithmeticExpression AST.Multiply $1 $3 }
   | Expression Divide Expression
-    { AST.UnitExpression }
-  | Expression Equals Expression
-    { AST.UnitExpression }
-  | Expression NotEquals Expression
-    { AST.UnitExpression }
-  | Expression Less Expression
-    { AST.UnitExpression }
-  | Expression Greater Expression
-    { AST.UnitExpression }
-  | Expression LessOrEquals Expression
-    { AST.UnitExpression }
-  | Expression GreaterOrEquals Expression
-    { AST.UnitExpression }
-  | Expression And Expression
-    { AST.UnitExpression }
-  | Expression Or Expression
-    { AST.UnitExpression }
+    { AST.ArithmeticExpression AST.Divide $1 $3 }
 
-Declaration
-  : TypeDeclaration
-    { $1 }
+  | Expression Equals Expression
+    { AST.ComparisonExpression AST.Equals $1 $3 }
+  | Expression NotEquals Expression
+    { AST.ComparisonExpression AST.NotEquals $1 $3 }
+  | Expression Less Expression
+    { AST.ComparisonExpression AST.Less $1 $3 }
+  | Expression Greater Expression
+    { AST.ComparisonExpression AST.Greater $1 $3 }
+  | Expression LessOrEquals Expression
+    { AST.ComparisonExpression AST.LessOrEquals $1 $3 }
+  | Expression GreaterOrEquals Expression
+    { AST.ComparisonExpression AST.GreaterOrEquals $1 $3 }
+
+  | Expression And Expression
+    { AST.IfExpression $1 $3 (Just $ AST.IntegerExpression 0) }
+  | Expression Or Expression
+    { AST.IfExpression $1 (AST.IntegerExpression 1) (Just $3) }
+
+DeclarationGroup
+  : TypeDeclarationGroup
+    { AST.TypeDeclarationGroup $1 }
   | VariableDeclaration
     { $1 }
-  | FunctionDeclaration
-    { AST.FunctionDeclaration }
+  | FunctionDeclarationGroup
+    { AST.FunctionDeclarationGroup $1 }
 
 DeclarationList
-  : Declaration
+  : DeclarationGroup
     { [$1] }
-  | DeclarationList Declaration
+  | DeclarationList DeclarationGroup
     { $1 ++ [$2] }
 
 Expression
@@ -130,7 +132,7 @@ Expression
     { AST.VariableExpression (AST.SimpleVariable $1) }
 
   | Minus Expression %prec UnaryMinus
-    { AST.UnitExpression }
+    { AST.ArithmeticExpression AST.Subtract (AST.IntegerExpression 0) $2 }
 
   | BinaryOperatorExpression
     { $1 }
@@ -141,7 +143,7 @@ Expression
     { AST.AssignExpression (AST.SimpleVariable $1) $3 }
 
   | Identifier LeftParen ExpressionList RightParen
-    { AST.UnitExpression }
+    { AST.CallExpression $1 $3 }
 
   | LeftParen RightParen
     { AST.UnitExpression }
@@ -157,9 +159,9 @@ Expression
     { AST.ArrayExpression $1 $3 $6 }
 
   | If Expression Then Expression
-    { AST.UnitExpression }
+    { AST.IfExpression $2 $4 Nothing }
   | If Expression Then Expression Else Expression
-    { AST.UnitExpression }
+    { AST.IfExpression $2 $4 (Just $6) }
 
   | While Expression Do Expression
     { AST.UnitExpression }
@@ -175,9 +177,9 @@ Expression
 
 ExpressionList
   : Expression
-    { () }
+    { [$1] }
   | ExpressionList Comma Expression
-    { () }
+    { $1 ++ [$3] }
 
 ExpressionSequence
   : Expression
@@ -193,9 +195,16 @@ FieldList
 
 FunctionDeclaration
   : Function Identifier LeftParen TypeFields RightParen Equals Expression
-    { () }
+    { AST.FunctionDeclaration $2 $4 Nothing $7 }
   | Function Identifier LeftParen TypeFields RightParen Colon Identifier Equals Expression
-    { () }
+    { AST.FunctionDeclaration $2 $4 (Just $7) $9 }
+
+-- TODO Figure out how to resolve shift/reduce conflict here.
+FunctionDeclarationGroup
+  : FunctionDeclaration
+    { [$1] }
+  | FunctionDeclarationGroup FunctionDeclaration
+    { $1 ++ [$2] }
 
 Lvalue
   : Lvalue Member Identifier
@@ -228,6 +237,13 @@ Ty
 TypeDeclaration
   : Type Identifier Equals Ty
     { AST.TypeDeclaration $2 $4 }
+
+-- TODO Figure out how to resolve shift/reduce conflict here.
+TypeDeclarationGroup
+  : TypeDeclaration
+    { [$1] }
+  | TypeDeclarationGroup TypeDeclaration
+    { $1 ++ [$2] }
 
 VariableDeclaration
   : Var Identifier Assign Expression
