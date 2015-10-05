@@ -1,7 +1,7 @@
 {
 module Parser(runParser) where
 
-import qualified Data.ByteString.Lazy.Char8 as L
+import qualified Data.ByteString.Lazy as L
 
 import qualified Scanner
 import qualified Tokens
@@ -12,7 +12,7 @@ import qualified AbstractSyntaxTree as AST
 %name parse
 %tokentype { Tokens.Token }
 %error { parseError }
-%monad { Scanner.Alex }
+%monad { Scanner.Scanner }
 %lexer { Scanner.getToken } { Tokens.EOF }
 
 %nonassoc Then Do Of
@@ -225,11 +225,10 @@ VariableDeclaration
 runParser :: L.ByteString -> Either String AST.Expression
 runParser input = Scanner.runScanner input parse
 
-reportError :: String -> Scanner.Alex a
+reportError :: String -> Scanner.Scanner a
 reportError = Scanner.reportError
 
-parseError :: Tokens.Token -> Scanner.Alex a
-parseError token =
-  reportError ("Could not parse at " ++ show token)
+parseError :: Tokens.Token -> Scanner.Scanner a
+parseError token = reportError ("Could not parse at " ++ show token)
 
 }

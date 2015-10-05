@@ -6,7 +6,7 @@ module Scanner (getToken
                ,runScanner
                ,reportError
                ,listTokens
-               ,Alex(..)
+               ,Scanner(..)
                ) where
 
 import Position
@@ -97,21 +97,20 @@ pos (AlexPn offset line col, _, _) = Position offset line col
 
 
 intOf :: AlexInput -> Int64 -> Integer
-intOf (_, _, s) n = read $ L.unpack $ L.take (fromIntegral n) s
+intOf (_, _, s) n = read $ L.unpack $ L.take n s
 
 stringOf :: AlexInput -> Int64 -> String
-stringOf (_, _, s) n = L.unpack $ L.drop 1 $ L.take (fromIntegral n - 1) s
+stringOf (_, _, s) n = L.unpack $ L.take (n - 2) $ L.tail s
 
 identifierOf :: AlexInput -> Int64 -> String
-identifierOf (_, _, s) n = L.unpack $ L.take (fromIntegral n) s
+identifierOf (_, _, s) n = L.unpack $ L.take n s
 
 
 listTokens :: L.ByteString -> Either String [Tokens.Token]
-listTokens input = runAlex input gather
-  where gather :: Alex [Tokens.Token]
-        gather = untilM alexMonadScan (alexGetInput >>= isEOF)
-        isEOF :: AlexInput -> Alex Bool
-        isEOF (_, _, s) = return $ L.null s
+listTokens input = runAlex input $ getToken collect
+  where collect :: Tokens.Token -> Alex [Tokens.Token]
+        collect Tokens.EOF = return []
+        collect token = getToken collect >>= return . (token :)
 
 runScanner :: L.ByteString -> Alex a -> Either String a
 runScanner = runAlex
@@ -125,6 +124,8 @@ reportError = alexError
 
 alexEOF :: Alex Tokens.Token
 alexEOF = return Tokens.EOF
+
+type Scanner a = Alex a
 
 instance Functor Alex where
   fmap = liftM
