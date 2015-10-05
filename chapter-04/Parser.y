@@ -132,13 +132,13 @@ Expression
   | Lvalue Assign Expression      { AST.AssignExpression $1 $3 }
   | Identifier Assign Expression  { AST.AssignExpression (AST.SimpleVariable $1) $3 }
 
-  | Identifier LeftParen ExpressionList RightParen { AST.CallExpression $1 $3 }
+  | Identifier LeftParen ExpressionList RightParen { AST.CallExpression $1 (reverse $3) }
 
   | LeftParen RightParen                    { AST.UnitExpression }
   | LeftParen ExpressionSequence RightParen { AST.UnitExpression }
 
   | Identifier BeginRecord EndRecord            { AST.RecordExpression $1 [] }
-  | Identifier BeginRecord FieldList EndRecord  { AST.RecordExpression $1 $3 }
+  | Identifier BeginRecord FieldList EndRecord  { AST.RecordExpression $1 (reverse $3) }
 
   | Identifier BeginSubscript Expression EndSubscript Of Expression
     { AST.ArrayExpression $1 $3 $6 }
@@ -153,25 +153,19 @@ Expression
 
   | Break { AST.UnitExpression }
 
-  | Let DeclarationList In ExpressionSequence End { AST.LetExpression $2 $4 }
+  | Let DeclarationList In ExpressionSequence End { AST.LetExpression $2 (reverse $4) }
 
 ExpressionList
-  : Expression
-    { [$1] }
-  | ExpressionList Comma Expression
-    { $1 ++ [$3] }
+  : Expression                      { [$1] }
+  | ExpressionList Comma Expression { $3 : $1 }
 
 ExpressionSequence
-  : Expression
-    { [$1] }
-  | ExpressionSequence Semicolon Expression
-    { $1 ++ [$3] }
+  : Expression                                { [$1] }
+  | ExpressionSequence Semicolon Expression   { $3 : $1 }
 
 FieldList
-  : Identifier Equals Expression
-    { [($1, $3)] }
-  | FieldList Comma Identifier Equals Expression
-    { $1 ++ [($3, $5)] }
+  : Identifier Equals Expression                  { [($1, $3)] }
+  | FieldList Comma Identifier Equals Expression  { ($3, $5) : $1 }
 
 FunctionDeclaration
   : Function Identifier LeftParen TypeFields RightParen Equals Expression
