@@ -1,28 +1,27 @@
 module Main where
   import Control.Monad
-  import qualified Data.ByteString.Lazy as LBS
+  import qualified Data.ByteString.Lazy as L
   import System.Environment
   import Text.PrettyPrint.GenericPretty
 
   import qualified Scanner
   import qualified Parser
 
-  scan :: IO ()
-  scan = do
-    [inputFile] <- getArgs
-    input <- LBS.readFile inputFile
-    let result = Scanner.listTokens input
-    case result of
+  showScan :: L.ByteString -> IO ()
+  showScan input =
+    case Scanner.listTokens input of
       Left errorMessage -> putStrLn errorMessage
       Right tokens -> forM_ tokens $ putStrLn . show
 
-  parse :: IO ()
-  parse = do
-    [inputFile] <- getArgs
-    input <- LBS.readFile inputFile
-    let result = Parser.runParser input
-    case result of
+  showParse :: L.ByteString -> IO ()
+  showParse input =
+    case Parser.runParser input of
       Left errorMessage -> putStrLn errorMessage
       Right ast -> pp ast
 
-  main = scan
+  main = do
+    [phase, inputFile] <- getArgs
+    input <- L.readFile inputFile
+    case phase of
+        "scan" -> showScan input
+        "parse" -> showParse input
