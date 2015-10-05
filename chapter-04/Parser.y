@@ -108,10 +108,8 @@ DeclarationGroup
   | FunctionDeclarationGroup  { AST.FunctionDeclarationGroup (reverse $1) }
 
 DeclarationList
-  : DeclarationGroup
-    { [$1] }
-  | DeclarationList DeclarationGroup
-    { $1 ++ [$2] }
+  : DeclarationGroup                  { [$1] }
+  | DeclarationList DeclarationGroup  { $2 : $1 }
 
 Expression
   : String  { AST.StringExpression $1 }
@@ -150,7 +148,8 @@ Expression
 
   | Break { AST.UnitExpression }
 
-  | Let DeclarationList In ExpressionSequence End { AST.LetExpression $2 (reverse $4) }
+  | Let DeclarationList In ExpressionSequence End
+    { AST.LetExpression (reverse $2) (reverse $4) }
 
 ExpressionList
   : Expression                      { [$1] }
@@ -166,9 +165,9 @@ FieldList
 
 FunctionDeclaration
   : Function Identifier LeftParen TypeFields RightParen Equals Expression
-    { AST.FunctionDeclaration $2 $4 Nothing $7 }
+    { AST.FunctionDeclaration $2 (reverse $4) Nothing $7 }
   | Function Identifier LeftParen TypeFields RightParen Colon Identifier Equals Expression
-    { AST.FunctionDeclaration $2 $4 (Just $7) $9 }
+    { AST.FunctionDeclaration $2 (reverse $4) (Just $7) $9 }
 
 -- TODO Figure out how to resolve shift/reduce conflict here.
 FunctionDeclarationGroup
@@ -190,18 +189,13 @@ TypeField
     { AST.Field $1 $3 }
 
 TypeFields
-  : TypeField
-    { [$1] }
-  | TypeFields Comma TypeField
-    { $1 ++ [$3] }
+  : TypeField                   { [$1] }
+  | TypeFields Comma TypeField  { $3 : $1 }
 
 Ty
-  : Identifier
-    { AST.NamedType $1 }
-  | BeginRecord TypeFields EndRecord
-    { AST.RecordType $2 }
-  | Array Of Identifier
-    { AST.ArrayType $3 }
+  : Identifier                        { AST.NamedType $1 }
+  | BeginRecord TypeFields EndRecord  { AST.RecordType (reverse $2) }
+  | Array Of Identifier               { AST.ArrayType $3 }
 
 TypeDeclaration
   : Type Identifier Equals Ty
