@@ -117,63 +117,43 @@ DeclarationList
     { $1 ++ [$2] }
 
 Expression
-  : String
-    { AST.StringExpression $1 }
+  : String  { AST.StringExpression $1 }
+  | Int     { AST.IntegerExpression $1 }
+  | Nil     { AST.NilExpression }
 
-  | Int
-    { AST.IntegerExpression $1 }
-
-  | Nil
-    { AST.UnitExpression }
-
-  | Lvalue
-    { AST.UnitExpression }
-  | Identifier
-    { AST.VariableExpression (AST.SimpleVariable $1) }
+  | Lvalue              { AST.UnitExpression }
+  | Identifier          { AST.VariableExpression (AST.SimpleVariable $1) }
 
   | Minus Expression %prec UnaryMinus
     { AST.ArithmeticExpression AST.Subtract (AST.IntegerExpression 0) $2 }
 
-  | BinaryOperatorExpression
-    { $1 }
+  | BinaryOperatorExpression { $1 }
 
-  | Lvalue Assign Expression
-    { AST.AssignExpression $1 $3 }
-  | Identifier Assign Expression
-    { AST.AssignExpression (AST.SimpleVariable $1) $3 }
+  | Lvalue Assign Expression      { AST.AssignExpression $1 $3 }
+  | Identifier Assign Expression  { AST.AssignExpression (AST.SimpleVariable $1) $3 }
 
-  | Identifier LeftParen ExpressionList RightParen
-    { AST.CallExpression $1 $3 }
+  | Identifier LeftParen ExpressionList RightParen { AST.CallExpression $1 $3 }
 
-  | LeftParen RightParen
-    { AST.UnitExpression }
-  | LeftParen ExpressionSequence RightParen
-    { AST.UnitExpression }
+  | LeftParen RightParen                    { AST.UnitExpression }
+  | LeftParen ExpressionSequence RightParen { AST.UnitExpression }
 
-  | Identifier BeginRecord EndRecord
-    { AST.RecordExpression $1 [] }
-  | Identifier BeginRecord FieldList EndRecord
-    { AST.RecordExpression $1 $3 }
+  | Identifier BeginRecord EndRecord            { AST.RecordExpression $1 [] }
+  | Identifier BeginRecord FieldList EndRecord  { AST.RecordExpression $1 $3 }
 
   | Identifier BeginSubscript Expression EndSubscript Of Expression
     { AST.ArrayExpression $1 $3 $6 }
 
-  | If Expression Then Expression
-    { AST.IfExpression $2 $4 Nothing }
-  | If Expression Then Expression Else Expression
-    { AST.IfExpression $2 $4 (Just $6) }
+  | If Expression Then Expression                 { AST.IfExpression $2 $4 Nothing }
+  | If Expression Then Expression Else Expression { AST.IfExpression $2 $4 (Just $6) }
 
-  | While Expression Do Expression
-    { AST.UnitExpression }
+  | While Expression Do Expression { AST.UnitExpression }
 
   | For Identifier Assign Expression To Expression Do Expression
     { AST.UnitExpression }
 
-  | Break
-    { AST.UnitExpression }
+  | Break { AST.UnitExpression }
 
-  | Let DeclarationList In ExpressionSequence End
-    { AST.LetExpression $2 $4 }
+  | Let DeclarationList In ExpressionSequence End { AST.LetExpression $2 $4 }
 
 ExpressionList
   : Expression

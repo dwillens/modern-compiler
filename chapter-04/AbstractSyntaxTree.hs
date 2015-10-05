@@ -12,6 +12,7 @@ module AbstractSyntaxTree where
 
   data Expression =
       VariableExpression Variable
+    | NilExpression
     | IntegerExpression Integer
     | StringExpression String
     | CallExpression Symbol [Expression]
