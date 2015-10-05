@@ -6,8 +6,12 @@ module AbstractSyntaxTree where
 
   data Variable =
       SimpleVariable Symbol
-    | FieldVariable Variable Symbol
-    | SubscriptVariable Variable Expression
+    | FieldVariable {fieldRecord :: Variable
+                    ,fieldMember :: Symbol
+                    }
+    | SubscriptVariable {subscriptArray :: Variable
+                        ,subscriptIndex :: Expression
+                        }
     deriving (Eq, Show, Generic, Out)
 
   data Expression =
@@ -15,15 +19,17 @@ module AbstractSyntaxTree where
     | NilExpression
     | IntegerExpression Integer
     | StringExpression String
-    | CallExpression Symbol [Expression]
+    | CallExpression {callFunction :: Symbol
+                     ,callArguments :: [Expression]
+                     }
     | ArithmeticExpression ArithmeticOperator Expression Expression
     | ComparisonExpression ComparisonOperator Expression Expression
     | RecordExpression {recordType :: Symbol
                        ,recordFields :: [(Symbol, Expression)]
                        }
     | SequenceExpression [Expression]
-    | AssignExpression {assignVariable :: Variable
-                       ,assignExpression :: Expression
+    | AssignExpression {assignTo :: Variable
+                       ,assignValue :: Expression
                        }
     | IfExpression {ifTest :: Expression
                    ,ifThen :: Expression
