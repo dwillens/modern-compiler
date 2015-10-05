@@ -144,7 +144,7 @@ Expression
   | While Expression Do Expression { AST.WhileExpression $2 $4 }
 
   | For Identifier Assign Expression To Expression Do Expression
-    { AST.UnitExpression }
+    { AST.ForExpression $2 $4 $6 $8 }
 
   | Break { AST.UnitExpression }
 

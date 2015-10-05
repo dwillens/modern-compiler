@@ -32,6 +32,11 @@ module AbstractSyntaxTree where
     | WhileExpression {whileTest :: Expression
                       ,whileBody :: Expression
                       }
+    | ForExpression {forVariable :: Symbol
+                    ,forLow :: Expression
+                    ,forHigh :: Expression
+                    ,forBody :: Expression
+                    }
     | LetExpression [DeclarationGroup] [Expression]
     | ArrayExpression {arrayType :: Symbol
                       ,arraySize :: Expression
