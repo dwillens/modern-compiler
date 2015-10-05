@@ -131,6 +131,7 @@ Expression
   | Lvalue Assign Expression      { AST.AssignExpression $1 $3 }
   | Identifier Assign Expression  { AST.AssignExpression (AST.SimpleVariable $1) $3 }
 
+  | Identifier LeftParen RightParen { AST.CallExpression $1 [] }
   | Identifier LeftParen ExpressionList RightParen { AST.CallExpression $1 (reverse $3) }
 
   | LeftParen RightParen                    { AST.SequenceExpression [] }
@@ -168,10 +169,15 @@ FieldList
   | FieldList Comma Identifier Equals Expression  { ($3, $5) : $1 }
 
 FunctionDeclaration
-  : Function Identifier LeftParen TypeFields RightParen Equals Expression
+  : Function Identifier LeftParen RightParen Equals Expression
+    { AST.FunctionDeclaration $2 [] Nothing $6 }
+  | Function Identifier LeftParen TypeFields RightParen Equals Expression
     { AST.FunctionDeclaration $2 (reverse $4) Nothing $7 }
+
   | Function Identifier LeftParen TypeFields RightParen Colon Identifier Equals Expression
     { AST.FunctionDeclaration $2 (reverse $4) (Just $7) $9 }
+  | Function Identifier LeftParen RightParen Colon Identifier Equals Expression
+    { AST.FunctionDeclaration $2 [] (Just $6) $8 }
 
 -- TODO Figure out how to resolve shift/reduce conflict here.
 FunctionDeclarationGroup
