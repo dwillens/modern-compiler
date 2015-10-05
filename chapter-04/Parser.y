@@ -141,7 +141,7 @@ Expression
   | If Expression Then Expression                 { AST.IfExpression $2 $4 Nothing }
   | If Expression Then Expression Else Expression { AST.IfExpression $2 $4 (Just $6) }
 
-  | While Expression Do Expression { AST.UnitExpression }
+  | While Expression Do Expression { AST.WhileExpression $2 $4 }
 
   | For Identifier Assign Expression To Expression Do Expression
     { AST.UnitExpression }

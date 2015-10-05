@@ -29,6 +29,9 @@ module AbstractSyntaxTree where
                    ,ifThen :: Expression
                    ,ifElse :: Maybe Expression
                    }
+    | WhileExpression {whileTest :: Expression
+                      ,whileBody :: Expression
+                      }
     | LetExpression [DeclarationGroup] [Expression]
     | ArrayExpression {arrayType :: Symbol
                       ,arraySize :: Expression
