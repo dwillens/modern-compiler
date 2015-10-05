@@ -2,7 +2,8 @@ module Tokens where
   import Position
 
   data Token =
-      While Position
+      EOF
+    | While Position
     | For Position
     | To Position
     | Break Position

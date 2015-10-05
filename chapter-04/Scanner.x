@@ -2,14 +2,23 @@
 
 {-# OPTIONS_GHC -fno-warn-tabs #-}
 
-module Scanner (scanTokens) where
+module Scanner (getToken
+               ,runScanner
+               ,reportError
+               ,Alex(..)
+               ) where
 
 import Position
 import Tokens
+
+import GHC.Int
 import Data.ByteString.Lazy.Char8 as L
+
+import Control.Monad(ap, liftM)
+
 }
 
-%wrapper "posn-bytestring"
+%wrapper "monad-bytestring"
 
 $digit = 0-9
 $letter = [a-zA-Z]
@@ -32,62 +41,84 @@ scanner :-
   @comments             ;
 
   -- Reserved words
-  "while"               { \p s -> Tokens.While $ pos p }
-  "for"                 { \p s -> Tokens.For $ pos p }
-  "to"                  { \p s -> Tokens.To $ pos p }
-  "break"               { \p s -> Tokens.Break $ pos p }
-  "let"                 { \p s -> Tokens.Let $ pos p }
-  "in"                  { \p s -> Tokens.In $ pos p }
-  "end"                 { \p s -> Tokens.End $ pos p }
-  "function"            { \p s -> Tokens.Function $ pos p }
-  "var"                 { \p s -> Tokens.Var $ pos p }
-  "type"                { \p s -> Tokens.Type $ pos p }
-  "array"               { \p s -> Tokens.Array $ pos p }
-  "if"                  { \p s -> Tokens.If $ pos p }
-  "then"                { \p s -> Tokens.Then $ pos p }
-  "else"                { \p s -> Tokens.Else $ pos p }
-  "do"                  { \p s -> Tokens.Do $ pos p }
-  "of"                  { \p s -> Tokens.Of $ pos p }
-  "nil"                 { \p s -> Tokens.Nil $ pos p }
+  "while"               { \a _ -> return $ Tokens.While $ pos a }
+  "for"                 { \a _ -> return $ Tokens.For $ pos a }
+  "to"                  { \a _ -> return $ Tokens.To $ pos a }
+  "break"               { \a _ -> return $ Tokens.Break $ pos a }
+  "let"                 { \a _ -> return $ Tokens.Let $ pos a }
+  "in"                  { \a _ -> return $ Tokens.In $ pos a }
+  "end"                 { \a _ -> return $ Tokens.End $ pos a }
+  "function"            { \a _ -> return $ Tokens.Function $ pos a }
+  "var"                 { \a _ -> return $ Tokens.Var $ pos a }
+  "type"                { \a _ -> return $ Tokens.Type $ pos a }
+  "array"               { \a _ -> return $ Tokens.Array $ pos a }
+  "if"                  { \a _ -> return $ Tokens.If $ pos a }
+  "then"                { \a _ -> return $ Tokens.Then $ pos a }
+  "else"                { \a _ -> return $ Tokens.Else $ pos a }
+  "do"                  { \a _ -> return $ Tokens.Do $ pos a }
+  "of"                  { \a _ -> return $ Tokens.Of $ pos a }
+  "nil"                 { \a _ -> return $ Tokens.Nil $ pos a }
 
   -- Operators
-  ","                   { \p s -> Tokens.Comma $ pos p }
-  ":"                   { \p s -> Tokens.Colon $ pos p }
-  ";"                   { \p s -> Tokens.Semicolon $ pos p }
-  "("                   { \p s -> Tokens.LeftParen $ pos p }
-  ")"                   { \p s -> Tokens.RightParen $ pos p }
-  "["                   { \p s -> Tokens.BeginSubscript $ pos p }
-  "]"                   { \p s -> Tokens.EndSubscript $ pos p }
-  "{"                   { \p s -> Tokens.BeginRecord $ pos p }
-  "}"                   { \p s -> Tokens.EndRecord $ pos p }
-  "."                   { \p s -> Tokens.Member $ pos p }
-  "+"                   { \p s -> Tokens.Plus $ pos p }
-  "-"                   { \p s -> Tokens.Minus $ pos p }
-  "*"                   { \p s -> Tokens.Times $ pos p }
-  "/"                   { \p s -> Tokens.Divide $ pos p }
-  "="                   { \p s -> Tokens.Equals $ pos p }
-  "<>"                  { \p s -> Tokens.NotEquals $ pos p }
-  "<"                   { \p s -> Tokens.Less $ pos p }
-  "<="                  { \p s -> Tokens.LessOrEquals $ pos p }
-  ">"                   { \p s -> Tokens.Greater $ pos p }
-  ">="                  { \p s -> Tokens.GreaterOrEquals $ pos p }
-  "&"                   { \p s -> Tokens.And $ pos p }
-  "|"                   { \p s -> Tokens.Or $ pos p }
-  ":="                  { \p s -> Tokens.Assign $ pos p }
+  ","                   { \a _ -> return $ Tokens.Comma $ pos a }
+  ":"                   { \a _ -> return $ Tokens.Colon $ pos a }
+  ";"                   { \a _ -> return $ Tokens.Semicolon $ pos a }
+  "("                   { \a _ -> return $ Tokens.LeftParen $ pos a }
+  ")"                   { \a _ -> return $ Tokens.RightParen $ pos a }
+  "["                   { \a _ -> return $ Tokens.BeginSubscript $ pos a }
+  "]"                   { \a _ -> return $ Tokens.EndSubscript $ pos a }
+  "{"                   { \a _ -> return $ Tokens.BeginRecord $ pos a }
+  "}"                   { \a _ -> return $ Tokens.EndRecord $ pos a }
+  "."                   { \a _ -> return $ Tokens.Member $ pos a }
+  "+"                   { \a _ -> return $ Tokens.Plus $ pos a }
+  "-"                   { \a _ -> return $ Tokens.Minus $ pos a }
+  "*"                   { \a _ -> return $ Tokens.Times $ pos a }
+  "/"                   { \a _ -> return $ Tokens.Divide $ pos a }
+  "="                   { \a _ -> return $ Tokens.Equals $ pos a }
+  "<>"                  { \a _ -> return $ Tokens.NotEquals $ pos a }
+  "<"                   { \a _ -> return $ Tokens.Less $ pos a }
+  "<="                  { \a _ -> return $ Tokens.LessOrEquals $ pos a }
+  ">"                   { \a _ -> return $ Tokens.Greater $ pos a }
+  ">="                  { \a _ -> return $ Tokens.GreaterOrEquals $ pos a }
+  "&"                   { \a _ -> return $ Tokens.And $ pos a }
+  "|"                   { \a _ -> return $ Tokens.Or $ pos a }
+  ":="                  { \a _ -> return $ Tokens.Assign $ pos a }
 
   -- Other
-  @integer              { \p s -> Tokens.Int (read $ L.unpack s) $ pos p }
-  @string               { \p s -> Tokens.String (stringOf s) $ pos p }
-  @identifier           { \p s -> Tokens.Identifier (L.unpack s) $ pos p }
+  @integer              { \a n -> return $ Tokens.Int (intOf a n)  $ pos a }
+  @string               { \a n -> return $ Tokens.String (stringOf a n) $ pos a }
+  @identifier           { \a n -> return $ Tokens.Identifier (identifierOf a n) $ pos a }
 {
 
-stringOf :: L.ByteString -> String
-stringOf = L.unpack . L.tail . L.init
+pos :: AlexInput -> Position
+pos (AlexPn offset line col, _, _) = Position offset line col
 
-pos :: AlexPosn -> Position
-pos (AlexPn offset line col) = Position offset line col
 
-scanTokens :: L.ByteString -> [Tokens.Token]
-scanTokens = alexScanTokens
+intOf :: AlexInput -> Int64 -> Integer
+intOf (_, _, s) n = read $ L.unpack $ L.take (fromIntegral n) s
 
+stringOf :: AlexInput -> Int64 -> String
+stringOf (_, _, s) n = L.unpack $ L.drop 1 $ L.take (fromIntegral n - 1) s
+
+identifierOf :: AlexInput -> Int64 -> String
+identifierOf (_, _, s) n = L.unpack $ L.take (fromIntegral n) s
+
+runScanner :: L.ByteString -> Alex a -> Either String a
+runScanner = runAlex
+
+getToken :: (Tokens.Token -> Alex a) -> Alex a
+getToken = (alexMonadScan >>=)
+
+reportError :: String -> Alex a
+reportError = alexError
+
+alexEOF :: Alex Tokens.Token
+alexEOF = return Tokens.EOF
+
+instance Functor Alex where
+  fmap = liftM
+
+instance Applicative Alex where
+  pure = return
+  (<*>) = ap
 }

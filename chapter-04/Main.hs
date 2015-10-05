@@ -4,21 +4,12 @@ module Main where
   import System.Environment
   import Text.PrettyPrint.GenericPretty
 
-  import Scanner
-  import Parser
-
-  scan = do
-    [inputFile] <- getArgs
-    input <- LBS.readFile inputFile
-    let tokens = scanTokens input
-    forM tokens $ putStrLn . show
+  import qualified Parser
 
   parse = do
     [inputFile] <- getArgs
     input <- LBS.readFile inputFile
-    let tokens = scanTokens input
-    --forM tokens $ putStrLn . show
-    let parseTree = makeParseTree tokens
+    let parseTree = Parser.runParser input
     pp parseTree
 
   main = parse

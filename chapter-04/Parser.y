@@ -1,15 +1,20 @@
 {
-module Parser(makeParseTree) where
+module Parser(runParser) where
 
+import qualified Data.ByteString.Lazy.Char8 as L
+
+import qualified Scanner
 import qualified Tokens
 import qualified AbstractSyntaxTree as AST
 }
 -- TODO Add error handling.
 -- TODO Make the parser/lexer monadic so parse errors can have line numbers.
 
-%name makeParseTree
+%name parse
 %tokentype { Tokens.Token }
 %error { parseError }
+%monad { Scanner.Alex }
+%lexer { Scanner.getToken } { Tokens.EOF }
 
 %nonassoc Then Do Of
 %nonassoc Else
@@ -212,7 +217,11 @@ VariableDeclaration
 
 {
 
-parseError :: [Tokens.Token] -> a
-parseError ts = error $ "Could not parse"
+runParser :: L.ByteString -> Either String AST.Expression
+runParser input = Scanner.runScanner input parse
+
+parseError :: Tokens.Token -> Scanner.Alex a
+parseError token =
+  Scanner.reportError ("Could not parse at " ++ show token)
 
 }
