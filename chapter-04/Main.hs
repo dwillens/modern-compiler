@@ -2,6 +2,7 @@ module Main where
   import Control.Monad
   import qualified Data.ByteString.Lazy as L
   import System.Environment
+  import System.IO
   import Text.PrettyPrint.GenericPretty
 
   import qualified Scanner
@@ -21,7 +22,9 @@ module Main where
 
   main = do
     [phase, inputFile] <- getArgs
-    input <- L.readFile inputFile
+    input <- case inputFile of
+                  "-" -> L.hGetContents stdin
+                  otherwise -> L.readFile inputFile
     case phase of
         "scan" -> showScan input
         "parse" -> showParse input
