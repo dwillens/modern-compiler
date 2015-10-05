@@ -37,12 +37,12 @@ module AbstractSyntaxTree where
                     ,forHigh :: Expression
                     ,forBody :: Expression
                     }
+    | BreakExpression
     | LetExpression [DeclarationGroup] [Expression]
     | ArrayExpression {arrayType :: Symbol
                       ,arraySize :: Expression
                       ,arrayInit :: Expression
                       }
-    | UnitExpression
     deriving (Eq, Show, Generic, Out)
 
   data ArithmeticOperator = Add | Subtract | Multiply | Divide
@@ -55,9 +55,9 @@ module AbstractSyntaxTree where
 
   data DeclarationGroup =
       FunctionDeclarationGroup [FunctionDeclaration]
-    | VariableDeclaration {vdName :: Symbol
-                          ,vdType :: Maybe Symbol
-                          ,vdInit :: Expression
+    | VariableDeclaration {variableName :: Symbol
+                          ,variableType :: Maybe Symbol
+                          ,variableInit :: Expression
                           }
     | TypeDeclarationGroup [TypeDeclaration]
     deriving (Eq, Show, Generic, Out)
@@ -71,8 +71,8 @@ module AbstractSyntaxTree where
     deriving (Eq, Show, Generic, Out)
 
   data TypeDeclaration =
-      TypeDeclaration {tdName :: Symbol
-                      ,tdType :: Type
+      TypeDeclaration {typeName :: Symbol
+                      ,typeType :: Type
                       }
     deriving (Eq, Show, Generic, Out)
 

@@ -116,7 +116,7 @@ Expression
   | Int     { AST.IntegerExpression $1 }
   | Nil     { AST.NilExpression }
 
-  | Lvalue              { AST.UnitExpression }
+  | Lvalue              { AST.VariableExpression $1 }
   | Identifier          { AST.VariableExpression (AST.SimpleVariable $1) }
 
   | Minus Expression %prec UnaryMinus
@@ -146,7 +146,7 @@ Expression
   | For Identifier Assign Expression To Expression Do Expression
     { AST.ForExpression $2 $4 $6 $8 }
 
-  | Break { AST.UnitExpression }
+  | Break { AST.BreakExpression }
 
   | Let DeclarationList In ExpressionSequence End
     { AST.LetExpression (reverse $2) (reverse $4) }
