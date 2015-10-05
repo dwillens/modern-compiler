@@ -103,12 +103,9 @@ BinaryOperatorExpression
     { AST.IfExpression $1 (AST.IntegerExpression 1) (Just $3) }
 
 DeclarationGroup
-  : TypeDeclarationGroup
-    { AST.TypeDeclarationGroup $1 }
-  | VariableDeclaration
-    { $1 }
-  | FunctionDeclarationGroup
-    { AST.FunctionDeclarationGroup $1 }
+  : TypeDeclarationGroup      { AST.TypeDeclarationGroup (reverse $1) }
+  | VariableDeclaration       { $1 }
+  | FunctionDeclarationGroup  { AST.FunctionDeclarationGroup (reverse $1) }
 
 DeclarationList
   : DeclarationGroup
@@ -175,10 +172,8 @@ FunctionDeclaration
 
 -- TODO Figure out how to resolve shift/reduce conflict here.
 FunctionDeclarationGroup
-  : FunctionDeclaration
-    { [$1] }
-  | FunctionDeclarationGroup FunctionDeclaration
-    { $1 ++ [$2] }
+  : FunctionDeclaration                           { [$1] }
+  | FunctionDeclarationGroup FunctionDeclaration  { $2 : $1 }
 
 Lvalue
   : Lvalue Member Identifier
@@ -214,10 +209,8 @@ TypeDeclaration
 
 -- TODO Figure out how to resolve shift/reduce conflict here.
 TypeDeclarationGroup
-  : TypeDeclaration
-    { [$1] }
-  | TypeDeclarationGroup TypeDeclaration
-    { $1 ++ [$2] }
+  : TypeDeclaration                       { [$1] }
+  | TypeDeclarationGroup TypeDeclaration  { $2 : $1 }
 
 VariableDeclaration
   : Var Identifier Assign Expression
