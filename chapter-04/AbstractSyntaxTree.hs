@@ -21,6 +21,7 @@ module AbstractSyntaxTree where
     | RecordExpression {recordType :: Symbol
                        ,recordFields :: [(Symbol, Expression)]
                        }
+    | SequenceExpression [Expression]
     | AssignExpression {assignVariable :: Variable
                        ,assignExpression :: Expression
                        }

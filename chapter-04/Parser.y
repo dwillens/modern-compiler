@@ -129,8 +129,8 @@ Expression
 
   | Identifier LeftParen ExpressionList RightParen { AST.CallExpression $1 (reverse $3) }
 
-  | LeftParen RightParen                    { AST.UnitExpression }
-  | LeftParen ExpressionSequence RightParen { AST.UnitExpression }
+  | LeftParen RightParen                    { AST.SequenceExpression [] }
+  | LeftParen ExpressionSequence RightParen { AST.SequenceExpression (reverse $2) }
 
   | Identifier BeginRecord EndRecord            { AST.RecordExpression $1 [] }
   | Identifier BeginRecord FieldList EndRecord  { AST.RecordExpression $1 (reverse $3) }
@@ -185,8 +185,7 @@ Lvalue
     { AST.SubscriptVariable (AST.SimpleVariable $1) $3 }
 
 TypeField
-  : Identifier Colon Identifier
-    { AST.Field $1 $3 }
+  : Identifier Colon Identifier { AST.Field $1 $3 }
 
 TypeFields
   : TypeField                   { [$1] }
@@ -198,8 +197,7 @@ Ty
   | Array Of Identifier               { AST.ArrayType $3 }
 
 TypeDeclaration
-  : Type Identifier Equals Ty
-    { AST.TypeDeclaration $2 $4 }
+  : Type Identifier Equals Ty { AST.TypeDeclaration $2 $4 }
 
 -- TODO Figure out how to resolve shift/reduce conflict here.
 TypeDeclarationGroup
