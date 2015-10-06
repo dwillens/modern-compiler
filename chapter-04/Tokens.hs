@@ -45,8 +45,8 @@ module Tokens where
     | Or Position
     | Assign Position
 
-    | Int Integer Position
-    | String String Position
-    | Identifier String Position
+    | Int (Integer, Position)
+    | String (String, Position)
+    | Identifier (String, Position)
 
     deriving (Eq, Show)

@@ -1,53 +1,66 @@
 {-# LANGUAGE DeriveGeneric, DeriveAnyClass #-}
 module AbstractSyntaxTree where
   import Text.PrettyPrint.GenericPretty
+  import Position
 
-  type Symbol = String
+  type Identifier = (String, Position)
 
   data Variable =
-      SimpleVariable Symbol
+      SimpleVariable Identifier
     | FieldVariable {fieldRecord :: Variable
-                    ,fieldMember :: Symbol
+                    ,fieldMember :: Identifier
+                    ,fieldPosition :: Position
                     }
     | SubscriptVariable {subscriptArray :: Variable
                         ,subscriptIndex :: Expression
+                        ,subscriptPosition :: Position
                         }
     deriving (Eq, Show, Generic, Out)
 
   data Expression =
       VariableExpression Variable
-    | NilExpression
-    | IntegerExpression Integer
-    | StringExpression String
-    | CallExpression {callFunction :: Symbol
+    | NilExpression Position
+    | IntegerExpression Integer Position
+    | StringExpression String Position
+    | CallExpression {callFunction :: Identifier
                      ,callArguments :: [Expression]
+                     ,callPosition :: Position
                      }
-    | ArithmeticExpression ArithmeticOperator Expression Expression
-    | ComparisonExpression ComparisonOperator Expression Expression
-    | RecordExpression {recordType :: Symbol
-                       ,recordFields :: [(Symbol, Expression)]
+    | ArithmeticExpression ArithmeticOperator Expression Expression Position
+    | ComparisonExpression ComparisonOperator Expression Expression Position
+    | RecordExpression {recordType :: Identifier
+                       ,recordFields :: [(Identifier, Expression)]
+                       ,recordPosition :: Position
                        }
-    | SequenceExpression [Expression]
+    | SequenceExpression [Expression] Position
     | AssignExpression {assignTo :: Variable
                        ,assignValue :: Expression
+                       ,assignPosition :: Position
                        }
     | IfExpression {ifTest :: Expression
                    ,ifThen :: Expression
                    ,ifElse :: Maybe Expression
+                   ,ifPosition :: Position
                    }
     | WhileExpression {whileTest :: Expression
                       ,whileBody :: Expression
+                      ,whilePosition :: Position
                       }
-    | ForExpression {forVariable :: Symbol
+    | ForExpression {forVariable :: Identifier
                     ,forLow :: Expression
                     ,forHigh :: Expression
                     ,forBody :: Expression
+                    ,forPosition :: Position
                     }
-    | BreakExpression
-    | LetExpression [DeclarationGroup] [Expression]
-    | ArrayExpression {arrayType :: Symbol
+    | BreakExpression Position
+    | LetExpression {letDeclarations :: [DeclarationGroup]
+                    ,letExpression :: [Expression]
+                    ,letPosition :: Position
+                    }
+    | ArrayExpression {arrayType :: Identifier
                       ,arraySize :: Expression
                       ,arrayInit :: Expression
+                      ,arrayPosition :: Position
                       }
     deriving (Eq, Show, Generic, Out)
 
@@ -61,36 +74,39 @@ module AbstractSyntaxTree where
 
   data DeclarationGroup =
       FunctionDeclarationGroup [FunctionDeclaration]
-    | VariableDeclaration {variableName :: Symbol
-                          ,variableType :: Maybe Symbol
+    | VariableDeclaration {variableName :: Identifier
+                          ,variableType :: Maybe Identifier
                           ,variableInit :: Expression
+                          ,variablePosition :: Position
                           }
     | TypeDeclarationGroup [TypeDeclaration]
     deriving (Eq, Show, Generic, Out)
 
   data FunctionDeclaration =
-      FunctionDeclaration {functionName :: Symbol
+      FunctionDeclaration {functionName :: Identifier
                           ,functionParams :: [Field]
-                          ,functionResult :: Maybe Symbol
+                          ,functionResult :: Maybe Identifier
                           ,functionBody :: Expression
+                          ,functionPosition :: Position
                           }
     deriving (Eq, Show, Generic, Out)
 
   data TypeDeclaration =
-      TypeDeclaration {typeName :: Symbol
+      TypeDeclaration {typeName :: Identifier
                       ,typeType :: Type
+                      ,typePosition :: Position
                       }
     deriving (Eq, Show, Generic, Out)
 
 
   data Type =
-      NamedType Symbol
-    | RecordType [Field]
-    | ArrayType Symbol
+      NamedType Identifier
+    | RecordType [Field] Position
+    | ArrayType Identifier Position
     deriving (Eq, Show, Generic, Out)
 
   data Field =
-      Field {fieldName :: Symbol
-            ,fieldType :: Symbol
+      Field {fieldName :: Identifier
+            ,fieldType :: Identifier
             }
     deriving (Eq, Show, Generic, Out)

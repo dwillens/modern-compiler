@@ -87,9 +87,9 @@ scanner :-
   ":="                  { \a _ -> return $ Tokens.Assign $ pos a }
 
   -- Other
-  @integer              { \a n -> return $ Tokens.Int (intOf a n)  $ pos a }
-  @string               { \a n -> return $ Tokens.String (stringOf a n) $ pos a }
-  @identifier           { \a n -> return $ Tokens.Identifier (identifierOf a n) $ pos a }
+  @integer              { \a n -> return $ Tokens.Int (intOf a n, pos a) }
+  @string               { \a n -> return $ Tokens.String (stringOf a n, pos a) }
+  @identifier           { \a n -> return $ Tokens.Identifier (identifierOf a n, pos a) }
 {
 
 pos :: AlexInput -> Position
