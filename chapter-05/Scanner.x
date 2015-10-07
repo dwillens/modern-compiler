@@ -16,7 +16,6 @@ import GHC.Int
 import qualified Data.ByteString.Lazy.Char8 as L
 
 import Control.Monad(ap, liftM)
-import Control.Monad.Loops(untilM)
 
 }
 

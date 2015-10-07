@@ -106,14 +106,14 @@ BinaryOperatorExpression
   | Expression Or Expression
     { AST.IfExpression $1 (AST.IntegerExpression 1 $2) (Just $3) $2 }
 
-DeclarationGroup
+Declaration
   : TypeDeclarationGroup      { AST.TypeDeclarationGroup (reverse $1) }
   | VariableDeclaration       { $1 }
   | FunctionDeclarationGroup  { AST.FunctionDeclarationGroup (reverse $1) }
 
 DeclarationList
-  : DeclarationGroup                  { [$1] }
-  | DeclarationList DeclarationGroup  { $2 : $1 }
+  : Declaration                  { [$1] }
+  | DeclarationList Declaration  { $2 : $1 }
 
 Expression
   : String  { let (s, p) = $1 in AST.StringExpression s p }

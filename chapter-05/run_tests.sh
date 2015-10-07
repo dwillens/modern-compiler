@@ -16,4 +16,4 @@ for INPUT in $*; do
       break
     fi
   fi
-done | less -S
+done

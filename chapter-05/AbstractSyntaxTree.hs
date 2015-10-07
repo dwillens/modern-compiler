@@ -53,7 +53,7 @@ module AbstractSyntaxTree where
                     ,forPosition :: Position
                     }
     | BreakExpression Position
-    | LetExpression {letDeclarations :: [DeclarationGroup]
+    | LetExpression {letDeclarations :: [Declaration]
                     ,letExpression :: [Expression]
                     ,letPosition :: Position
                     }
@@ -72,7 +72,7 @@ module AbstractSyntaxTree where
                           | Greater | GreaterOrEquals
     deriving (Eq, Show, Generic, Out)
 
-  data DeclarationGroup =
+  data Declaration =
       FunctionDeclarationGroup [FunctionDeclaration]
     | VariableDeclaration {variableName :: Identifier
                           ,variableType :: Maybe Identifier
