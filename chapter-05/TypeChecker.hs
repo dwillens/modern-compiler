@@ -116,10 +116,24 @@ module TypeChecker(typeCheck) where
     where lastType :: Monad m => (a -> m b) -> m b -> a -> m b
           lastType f p x = p *> f x
 
+  resolveType :: Environment -> AST.Identifier -> Either String Type
+  resolveType (_, ts) (name, p) =
+    case M.lookup name ts of
+      Just t -> return t
+      Nothing -> reportError p ": could not find type alias"
+
   declaration :: Environment -> AST.Declaration -> Either String Environment
   declaration env (AST.VariableDeclaration name Nothing init p) =
     expression env init >>= return . insertValue env name . Variable
-  declaration _ node = Left ("Can't check declaration:\n" ++ show node)
+
+  declaration env (AST.VariableDeclaration name (Just ty) init p) =
+    do initType <- expression env init
+       decType <- resolveType env ty
+       typesMatch matchError initType decType
+       return $ insertValue env name $ Variable initType
+    where matchError = reportError p ": declaration types must match"
+
+  declaration _ node = reportError node "\nCan't check declaration"
 
   variable :: Environment -> AST.Variable -> Either String Type
   variable (vs, _) (AST.SimpleVariable (name, p)) =
