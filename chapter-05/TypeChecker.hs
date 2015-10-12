@@ -68,9 +68,33 @@ module TypeChecker(typeCheck) where
   expression env (AST.AssignExpression to val p) =
     do toType <- variable env to
        valType <- expression env val
-       if toType == valType
-          then return Unit
-          else Left (show p ++ ": assignment types must match")
+       typesMatch matchError toType valType
+    where matchError = reportError p ": assignment types must match"
+
+  expression env (AST.IfExpression test thenE (Just elseE) p) =
+    expression env test >>= testType env
+      >> do thenType <- expression env thenE
+            elseType <- expression env elseE
+            typesMatch matchError thenType elseType
+    where testType _ Int = return Int
+          testType _ _ = reportError p ": if condition must be int"
+          matchError = reportError p ": if-then-else types must match"
+
+  expression env (AST.IfExpression test thenE Nothing p) =
+    expression env test >>= testType env
+      >> expression env thenE >>= thenType env
+    where testType _ Int = return Int
+          testType _ _ = reportError p ": if condition must be int"
+          thenType _ Unit = return Unit
+          thenType _ _ = reportError p ": if-then type must be unit"
+
+  expression env (AST.WhileExpression test body p) =
+    expression env test >>= testType env
+      >> expression env body >>= bodyType env
+    where testType _ Int = return Int
+          testType _ _ = reportError p ": while condition must be int"
+          bodyType _ Unit = return Unit
+          bodyType _ _ = reportError p ": while body must be unit"
 
   expression env (AST.ForExpression v low hi body p) =
     expression env low >>= boundType env
