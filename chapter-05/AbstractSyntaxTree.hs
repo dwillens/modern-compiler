@@ -27,7 +27,8 @@ module AbstractSyntaxTree where
                      ,callPosition :: Position
                      }
     | ArithmeticExpression ArithmeticOperator Expression Expression Position
-    | ComparisonExpression ComparisonOperator Expression Expression Position
+    | EqualityExpression EqualityOperator Expression Expression Position
+    | OrderingExpression OrderingOperator Expression Expression Position
     | RecordExpression {recordType :: Identifier
                        ,recordFields :: [(Identifier, Expression)]
                        ,recordPosition :: Position
@@ -67,9 +68,11 @@ module AbstractSyntaxTree where
   data ArithmeticOperator = Add | Subtract | Multiply | Divide
     deriving (Eq, Show, Generic, Out)
 
-  data ComparisonOperator = Equals | NotEquals
-                          | Less | LessOrEquals
-                          | Greater | GreaterOrEquals
+  data EqualityOperator = Equals | NotEquals
+    deriving (Eq, Show, Generic, Out)
+
+  data OrderingOperator = Less | LessOrEquals
+                        | Greater | GreaterOrEquals
     deriving (Eq, Show, Generic, Out)
 
   data Declaration =

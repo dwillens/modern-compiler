@@ -24,11 +24,18 @@ module TypeChecker(typeCheck) where
   type Types = M.Map String Type
   type Environment = (Values, Types)
 
+  reportError :: Show p => p -> String -> Either String a
+  reportError p = Left . (++) (show p)
+
   insertValue :: Environment -> AST.Identifier -> Value -> Environment
-  insertValue (vs, ts) (name, _) ty =  (M.insert name ty vs, ts)
+  insertValue (vs, ts) (name, _) val = (M.insert name val vs, ts)
+
+  insertType :: Environment -> AST.Identifier -> Type -> Environment
+  insertType (vs, ts) (name, _) ty = (vs, M.insert name ty ts)
 
   typeCheck :: AST.Expression -> Either String ()
-  typeCheck = void . expression (M.empty, M.empty)
+  typeCheck = void . expression (M.empty, standardTypes)
+    where standardTypes = M.fromList [("int", Int), ("string", String)]
 
   expression :: Environment -> AST.Expression -> Either String Type
   expression env (AST.VariableExpression v) = variable env v
@@ -36,12 +43,25 @@ module TypeChecker(typeCheck) where
   expression _ (AST.IntegerExpression _ _) = return Int
   expression _ (AST.StringExpression _ _) = return String
 
-
   expression env (AST.ArithmeticExpression _ l r p) =
     expression env l >>= operandType env
       >> expression env r >>= operandType env
     where operandType _ Int = return Int
-          operandType _ _ = Left $ show p ++ ": operand must be int"
+          operandType _ _ = reportError p ": operand must be int"
+
+  expression env (AST.EqualityExpression _ l r p) =
+    do lType <- expression env l
+       rType <- expression env r
+       typesMatch matchError lType rType
+    where matchError = reportError p ": equality types must match"
+
+  expression env (AST.OrderingExpression _ l r p) =
+    do lType <- expression env l
+       rType <- expression env r
+       orderingTypes env lType rType
+    where orderingTypes _ Int Int = return Int
+          orderingTypes _ String String = return Int
+          orderingTypes _ _ _ = reportError p ": cannot order types"
 
   expression env (AST.SequenceExpression es p) = expressions env es
 
@@ -58,9 +78,9 @@ module TypeChecker(typeCheck) where
       >> expression env' body >>= bodyType env
     where env' = insertValue env v (Variable Int)
           boundType _ Int = return Int
-          boundType _ _ = Left $ show p ++ ": for loop bound must be int"
+          boundType _ _ = reportError p ": for bound must be int"
           bodyType _ Unit = return Unit
-          bodyType _ _ = Left $ show p ++ ": for loop body must be unit"
+          bodyType _ _ = reportError p ": for body must be unit"
 
   expression env (AST.LetExpression ds es p) =
     foldM declaration env ds >>= flip expressions es
@@ -81,5 +101,10 @@ module TypeChecker(typeCheck) where
   variable (vs, _) (AST.SimpleVariable (name, p)) =
     case M.lookup name vs of
       Just (Variable t) -> return t
-      Just _ -> Left $ show p ++ ": expected a variable"
-      Nothing -> Left $ show p ++ ": could not find variable"
+      Just _ -> reportError p ": expected a variable"
+      Nothing -> reportError p ": could not find variable"
+
+  typesMatch :: Either String Type -> Type -> Type -> Either String Type
+  typesMatch message a b
+    | a == b = return a
+    | otherwise = message

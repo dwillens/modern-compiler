@@ -89,17 +89,18 @@ BinaryOperatorExpression
     { AST.ArithmeticExpression AST.Divide $1 $3 $2 }
 
   | Expression Equals Expression
-    { AST.ComparisonExpression AST.Equals $1 $3 $2 }
+    { AST.EqualityExpression AST.Equals $1 $3 $2 }
   | Expression NotEquals Expression
-    { AST.ComparisonExpression AST.NotEquals $1 $3 $2 }
+    { AST.EqualityExpression AST.NotEquals $1 $3 $2 }
+
   | Expression Less Expression
-    { AST.ComparisonExpression AST.Less $1 $3 $2 }
+    { AST.OrderingExpression AST.Less $1 $3 $2 }
   | Expression Greater Expression
-    { AST.ComparisonExpression AST.Greater $1 $3 $2 }
+    { AST.OrderingExpression AST.Greater $1 $3 $2 }
   | Expression LessOrEquals Expression
-    { AST.ComparisonExpression AST.LessOrEquals $1 $3 $2 }
+    { AST.OrderingExpression AST.LessOrEquals $1 $3 $2 }
   | Expression GreaterOrEquals Expression
-    { AST.ComparisonExpression AST.GreaterOrEquals $1 $3 $2 }
+    { AST.OrderingExpression AST.GreaterOrEquals $1 $3 $2 }
 
   | Expression And Expression
     { AST.IfExpression $1 $3 (Just $ AST.IntegerExpression 0 $2) $2 }
