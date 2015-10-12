@@ -113,8 +113,10 @@ module TypeChecker(typeCheck) where
     do arrayType <- resolveType env ty
        initType <- expression env init
        arrayTypesMatch arrayType initType
-    where arrayTypesMatch t@(Array array) init = return t
-          arrayTypesMatch _ _ = reportError p ": array init type must match"
+    where arrayTypesMatch t@(Array array) init
+            | array == init = return t
+            | otherwise = reportError p ": array init type must match"
+          arrayTypesMatch _ _ = reportError p ": expected an array expression"
 
   expression _ node = reportError node "\nCan't check expression"
 
