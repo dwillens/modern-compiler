@@ -63,7 +63,7 @@ module TypeChecker(typeCheck) where
           orderingTypes _ String String = return Int
           orderingTypes _ _ _ = reportError p ": cannot order types"
 
-  expression env (AST.SequenceExpression es p) = expressions env es
+  expression env (AST.SequenceExpression es p) = expressionSequence env es
 
   expression env (AST.AssignExpression to val p) =
     do toType <- variable env to
@@ -107,7 +107,7 @@ module TypeChecker(typeCheck) where
           bodyType _ _ = reportError p ": for body must be unit"
 
   expression env (AST.LetExpression ds es p) =
-    foldM declaration env ds >>= flip expressions es
+    foldM declaration env ds >>= flip expressionSequence es
 
   expression env(AST.ArrayExpression ty size init p) =
     do arrayType <- resolveType env ty
@@ -118,8 +118,8 @@ module TypeChecker(typeCheck) where
 
   expression _ node = reportError node "\nCan't check expression"
 
-  expressions :: Environment -> [AST.Expression] -> Either String Type
-  expressions env = foldl (lastType $ expression env) (return Unit)
+  expressionSequence :: Environment -> [AST.Expression] -> Either String Type
+  expressionSequence env = foldl (lastType $ expression env) (return Unit)
     where lastType :: Monad m => (a -> m b) -> m b -> a -> m b
           lastType f p x = p *> f x
 
