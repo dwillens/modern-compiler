@@ -123,6 +123,32 @@ module TypeChecker(typeCheck) where
     where lastType :: Monad m => (a -> m b) -> m b -> a -> m b
           lastType f p x = p *> f x
 
+
+  variable :: Environment -> AST.Variable -> Either String Type
+  variable (vs, _) (AST.SimpleVariable (name, p)) =
+    case M.lookup name vs of
+      Just (Variable t) -> return t
+      Just _ -> reportError p ": expected a variable"
+      Nothing -> reportError p ": could not find variable"
+
+  variable env (AST.SubscriptVariable var index p) =
+    expression env index >>= indexType env
+      >> variable env var >>= arrayType env
+    where indexType _ Int = return Int
+          indexType _ _ = reportError p ": index must be an int"
+          arrayType _ (Array t) = return t
+          arrayType _ _ = reportError p ": subscripted must be an array"
+
+  variable env (AST.FieldVariable record (member, _) p) =
+    variable env record >>= field
+    where field :: Type -> Either String Type
+          field (Record fs) =
+            case lookup member fs of
+              Just ty -> return ty
+              Nothing -> reportError p ": could not find field"
+          field _ = reportError p ": expected a record type"
+
+
   resolveType :: Environment -> AST.Identifier -> Either String Type
   resolveType (_, ts) (name, p) =
     case M.lookup name ts of
@@ -154,21 +180,6 @@ module TypeChecker(typeCheck) where
             resolveType env ty >>= return . (,) name
 
   declaration _ node = reportError node "\nCan't check declaration"
-
-  variable :: Environment -> AST.Variable -> Either String Type
-  variable (vs, _) (AST.SimpleVariable (name, p)) =
-    case M.lookup name vs of
-      Just (Variable t) -> return t
-      Just _ -> reportError p ": expected a variable"
-      Nothing -> reportError p ": could not find variable"
-
-  variable env (AST.SubscriptVariable var index p) =
-    expression env index >>= indexType env
-      >> variable env var >>= arrayType env
-    where indexType _ Int = return Int
-          indexType _ _ = reportError p ": index must be an int"
-          arrayType _ (Array t) = return t
-          arrayType _ _ = reportError p ": subscripted must be an array"
 
   typesMatch :: Either String Type -> Type -> Type -> Either String Type
   typesMatch message a b
