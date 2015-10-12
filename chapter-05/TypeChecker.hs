@@ -10,8 +10,8 @@ module TypeChecker(typeCheck) where
 
   data Type = Int
             | String
-            | Record [(String, Type)] Unique
-            | Array Type Unique
+            | Record [(String, Type)]
+            | Array Type
             | Nil
             | Unit
             | Placeholder String (Maybe Type)
@@ -109,7 +109,14 @@ module TypeChecker(typeCheck) where
   expression env (AST.LetExpression ds es p) =
     foldM declaration env ds >>= flip expressions es
 
-  expression _ node = Left ("Can't check expression:\n" ++ show node)
+  expression env(AST.ArrayExpression ty size init p) =
+    do arrayType <- resolveType env ty
+       initType <- expression env init
+       arrayTypesMatch arrayType initType
+    where arrayTypesMatch t@(Array array) init = return t
+          arrayTypesMatch _ _ = reportError p ": array init type must match"
+
+  expression _ node = reportError node "\nCan't check expression"
 
   expressions :: Environment -> [AST.Expression] -> Either String Type
   expressions env = foldl (lastType $ expression env) (return Unit)
@@ -133,6 +140,19 @@ module TypeChecker(typeCheck) where
        return $ insertValue env name $ Variable initType
     where matchError = reportError p ": declaration types must match"
 
+  declaration env (AST.TypeDeclarationGroup ds) = foldM bind env ds
+    where bind :: Environment -> AST.TypeDeclaration -> Either String Environment
+          bind env (AST.TypeDeclaration name ty _) =
+            actual env ty >>= return . insertType env name
+          actual :: Environment -> AST.Type -> Either String Type
+          actual env (AST.NamedType name) = resolveType env name
+          actual env (AST.ArrayType name p) =
+            resolveType env name >>= return . Array
+          actual env (AST.RecordType fs p) =
+            mapM (field env) fs >>= return . Record
+          field env (AST.Field (name, _) ty) =
+            resolveType env ty >>= return . (,) name
+
   declaration _ node = reportError node "\nCan't check declaration"
 
   variable :: Environment -> AST.Variable -> Either String Type
@@ -141,6 +161,14 @@ module TypeChecker(typeCheck) where
       Just (Variable t) -> return t
       Just _ -> reportError p ": expected a variable"
       Nothing -> reportError p ": could not find variable"
+
+  variable env (AST.SubscriptVariable var index p) =
+    expression env index >>= indexType env
+      >> variable env var >>= arrayType env
+    where indexType _ Int = return Int
+          indexType _ _ = reportError p ": index must be an int"
+          arrayType _ (Array t) = return t
+          arrayType _ _ = reportError p ": subscripted must be an array"
 
   typesMatch :: Either String Type -> Type -> Type -> Either String Type
   typesMatch message a b
