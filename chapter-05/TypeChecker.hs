@@ -74,11 +74,27 @@ module TypeChecker(typeCheck) where
           field _ = reportError p ": expected a record type"
 
 
+  function :: Environment -> AST.Identifier -> Either String ([Type], Type)
+  function (vs, _) (name, p) =
+    case M.lookup name vs of
+      Just (Function params result) -> return (params, result)
+      Nothing -> reportError p ": expected a function"
+
+
   expression :: Environment -> AST.Expression -> Either String Type
   expression env (AST.VariableExpression v) = variable env v
 
   expression _ (AST.IntegerExpression _ _) = return Int
   expression _ (AST.StringExpression _ _) = return String
+
+  expression env (AST.CallExpression f args p) =
+    do (paramTypes, resultType) <- function env f
+       lengthsMatch lengthError paramTypes args
+       argTypes <- forM args $ expression env
+       zipWithM (typeMatch matchError) paramTypes argTypes
+       return resultType
+    where matchError = reportError p ": argument types do not match"
+          lengthError = reportError p ": wrong number of arguments"
 
   expression env (AST.ArithmeticExpression _ l r p) =
     expression env l >>= operandType env
@@ -203,7 +219,7 @@ module TypeChecker(typeCheck) where
 
   declaration env (AST.TypeDeclarationGroup ds) = foldM bindType env ds
 
-  declaration _ node = reportError node "\nCan't check declaration"
+  declaration env (AST.FunctionDeclarationGroup ds) = foldM bindFunction env ds
 
   bindType :: Environment -> AST.TypeDeclaration -> Either String Environment
   bindType env (AST.TypeDeclaration name ty _) =
@@ -217,3 +233,17 @@ module TypeChecker(typeCheck) where
           field env (AST.Field (name, _) ty) =
             resolveType env ty >>= return . (,) name
 
+  bindFunction :: Environment -> AST.FunctionDeclaration -> Either String Environment
+  bindFunction env (AST.FunctionDeclaration name params result body p) =
+    do resultType <- resolveResultType env result
+       formals <- forM params $ field env
+       let env' = insertValue env name $ Function (map snd formals) resultType
+       let env'' = foldl insertField env' formals
+       bodyType <- expression env'' body
+       typeMatch matchError bodyType resultType
+       return env'
+    where insertField env (name, ty) = insertValue env name $ Variable ty
+          matchError = reportError p ": body and result type must match"
+          field env (AST.Field name ty) = resolveType env ty >>= return . (,) name
+          resolveResultType env (Just t) = resolveType env t
+          resolveResultType _ Nothing = return Unit
