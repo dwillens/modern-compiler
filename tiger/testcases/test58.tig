@@ -1,0 +1,6 @@
+/* error: not enough fields */ 
+let
+  type rec = {name: string, age: int}
+in
+  rec {name = "help"}
+end
