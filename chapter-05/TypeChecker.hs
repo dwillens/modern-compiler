@@ -171,7 +171,10 @@ module TypeChecker(typeCheck) where
 
   declaration :: Environment -> AST.Declaration -> Either String Environment
   declaration env (AST.VariableDeclaration name Nothing init p) =
-    expression env init >>= return . insertValue env name . Variable
+    expression env init >>= initType env
+      >>= return . insertValue env name . Variable
+    where initType _ Unit = reportError p ": cannot assign unit"
+          initType _ t = return t
 
   declaration env (AST.VariableDeclaration name (Just ty) init p) =
     do initType <- expression env init
