@@ -39,6 +39,8 @@ module TypeChecker(typeCheck) where
 
 
   typeMatch :: Either String Type -> Type -> Type -> Either String Type
+  typeMatch _ r@(Record _) Nil = return r
+  typeMatch _ Nil r@(Record _) = return r
   typeMatch message a b
     | a == b = return a
     | otherwise = message
@@ -84,6 +86,7 @@ module TypeChecker(typeCheck) where
   expression :: Environment -> AST.Expression -> Either String Type
   expression env (AST.VariableExpression v) = variable env v
 
+  expression _ (AST.NilExpression _) = return Nil
   expression _ (AST.IntegerExpression _ _) = return Int
   expression _ (AST.StringExpression _ _) = return String
 
@@ -208,6 +211,7 @@ module TypeChecker(typeCheck) where
     expression env init >>= initType env
       >>= return . insertValue env name . Variable
     where initType _ Unit = reportError p ": cannot assign unit"
+          initType _ Nil = reportError p ": cannot assign nil"
           initType _ t = return t
 
   declaration env (AST.VariableDeclaration name (Just ty) init p) =
