@@ -37,6 +37,12 @@ module TypeChecker(typeCheck) where
   insertType :: Environment -> AST.Identifier -> Type -> Environment
   insertType (vs, ts) (name, _) ty = (vs, M.insert name ty ts)
 
+  resolveType :: Environment -> AST.Identifier -> Either String Type
+  resolveType (_, ts) (name, p) =
+    case M.lookup name ts of
+      Just t -> return t
+      Nothing -> reportError p ": could not find type alias"
+
 
   typeMatch :: Either String Type -> Type -> Type -> Either String Type
   typeMatch _ r@(Record _) Nil = return r
@@ -195,35 +201,6 @@ module TypeChecker(typeCheck) where
   expression _ node = reportError node "\nCan't check expression"
 
 
-
-
-
-
-  resolveType :: Environment -> AST.Identifier -> Either String Type
-  resolveType (_, ts) (name, p) =
-    case M.lookup name ts of
-      Just t -> return t
-      Nothing -> reportError p ": could not find type alias"
-
-  declaration :: Environment -> AST.Declaration -> Either String Environment
-  declaration env (AST.VariableDeclaration name Nothing init p) =
-    expression env init >>= initType env
-      >>= return . insertValue env name . Variable
-    where initType _ Unit = reportError p ": cannot assign unit"
-          initType _ Nil = reportError p ": cannot assign nil"
-          initType _ t = return t
-
-  declaration env (AST.VariableDeclaration name (Just ty) init p) =
-    do initType <- expression env init
-       decType <- resolveType env ty
-       typeMatch matchError initType decType
-       return $ insertValue env name $ Variable initType
-    where matchError = reportError p ": declaration types must match"
-
-  declaration env (AST.TypeDeclarationGroup ds) = foldM bindType env ds
-
-  declaration env (AST.FunctionDeclarationGroup ds) = foldM bindFunction env ds
-
   bindType :: Environment -> AST.TypeDeclaration -> Either String Environment
   bindType env (AST.TypeDeclaration name ty _) =
     actual env ty >>= return . insertType env name
@@ -250,3 +227,23 @@ module TypeChecker(typeCheck) where
           field env (AST.Field name ty) = resolveType env ty >>= return . (,) name
           resolveResultType env (Just t) = resolveType env t
           resolveResultType _ Nothing = return Unit
+
+
+  declaration :: Environment -> AST.Declaration -> Either String Environment
+  declaration env (AST.VariableDeclaration name Nothing init p) =
+    expression env init >>= initType env
+      >>= return . insertValue env name . Variable
+    where initType _ Unit = reportError p ": cannot assign unit"
+          initType _ Nil = reportError p ": cannot assign nil"
+          initType _ t = return t
+
+  declaration env (AST.VariableDeclaration name (Just ty) init p) =
+    do initType <- expression env init
+       decType <- resolveType env ty
+       typeMatch matchError initType decType
+       return $ insertValue env name $ Variable initType
+    where matchError = reportError p ": declaration types must match"
+
+  declaration env (AST.TypeDeclarationGroup ds) = foldM bindType env ds
+
+  declaration env (AST.FunctionDeclarationGroup ds) = foldM bindFunction env ds
