@@ -43,6 +43,9 @@ module TypeChecker(typeCheck) where
       Just t -> return t
       Nothing -> reportError p ": could not find type alias"
 
+  conditionType :: Either String Type -> Type -> Either String Type
+  conditionType _ Int = return Int
+  conditionType message _ = message
 
   typeMatch :: Either String Type -> Type -> Type -> Either String Type
   typeMatch _ r@(Record _) Nil = return r
@@ -152,27 +155,24 @@ module TypeChecker(typeCheck) where
     where matchError = reportError p ": assignment types must match"
 
   expression env (AST.IfExpression test thenE (Just elseE) p) =
-    expression env test >>= testType env
+    expression env test >>= conditionType conditionError
       >> do thenType <- expression env thenE
             elseType <- expression env elseE
             typeMatch matchError thenType elseType
-    where testType _ Int = return Int
-          testType _ _ = reportError p ": if condition must be int"
+    where conditionError = reportError p ": if condition must be int"
           matchError = reportError p ": if-then-else types must match"
 
   expression env (AST.IfExpression test thenE Nothing p) =
-    expression env test >>= testType env
+    expression env test >>= conditionType conditionError
       >> expression env thenE >>= thenType env
-    where testType _ Int = return Int
-          testType _ _ = reportError p ": if condition must be int"
+    where conditionError = reportError p ": if condition must be int"
           thenType _ Unit = return Unit
           thenType _ _ = reportError p ": if-then type must be unit"
 
   expression env (AST.WhileExpression test body p) =
-    expression env test >>= testType env
+    expression env test >>= conditionType conditionError
       >> expression env body >>= bodyType env
-    where testType _ Int = return Int
-          testType _ _ = reportError p ": while condition must be int"
+    where conditionError = reportError p ": while condition must be int"
           bodyType _ Unit = return Unit
           bodyType _ _ = reportError p ": while body must be unit"
 
