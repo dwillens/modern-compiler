@@ -85,6 +85,7 @@ module TypeChecker(typeCheck) where
     do toType <- variable env to
        valType <- expression env val
        typesMatch matchError toType valType
+       return Unit
     where matchError = reportError p ": assignment types must match"
 
   expression env (AST.IfExpression test thenE (Just elseE) p) =
