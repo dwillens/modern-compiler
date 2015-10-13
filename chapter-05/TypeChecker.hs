@@ -186,6 +186,8 @@ module TypeChecker(typeCheck) where
           bodyType _ Unit = return Unit
           bodyType _ _ = reportError p ": for body must be unit"
 
+  expression _ (AST.BreakExpression p) = return Unit
+
   expression env (AST.LetExpression ds es p) =
     foldM declaration env ds >>= flip expression (AST.SequenceExpression es p)
 
@@ -197,8 +199,6 @@ module TypeChecker(typeCheck) where
             | array == init = return t
             | otherwise = reportError p ": array init type must match"
           arrayTypesMatch _ _ = reportError p ": expected an array expression"
-
-  expression _ node = reportError node "\nCan't check expression"
 
 
   bindType :: Environment -> AST.TypeDeclaration -> Either String Environment
