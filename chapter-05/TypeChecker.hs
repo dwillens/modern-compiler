@@ -85,7 +85,6 @@ module TypeChecker(typeCheck) where
 
   expression :: Environment -> AST.Expression -> Either String Type
   expression env (AST.VariableExpression v) = variable env v
-
   expression _ (AST.NilExpression _) = return Nil
   expression _ (AST.IntegerExpression _ _) = return Int
   expression _ (AST.StringExpression _ _) = return String
@@ -119,8 +118,6 @@ module TypeChecker(typeCheck) where
           orderingTypes _ String String = return Int
           orderingTypes _ _ _ = reportError p ": cannot order types"
 
-  expression env (AST.SequenceExpression es p) = expressionSequence env es
-
   expression env (AST.RecordExpression ty fs p) =
     resolveType env ty >>= recordType env fs
     where recordType :: Environment -> [(AST.Identifier, AST.Expression)] -> Type -> Either String Type
@@ -135,6 +132,11 @@ module TypeChecker(typeCheck) where
             | otherwise = reportError p ": wrong field"
           matchError = reportError p ": field init type must match"
           lengthError = reportError p ": wrong number of fields"
+
+  expression env (AST.SequenceExpression es p) =
+    foldl (lastType $ expression env) (return Unit) es
+    where lastType :: Monad m => (a -> m b) -> m b -> a -> m b
+          lastType f p x = p *> f x
 
   expression env (AST.AssignExpression to val p) =
     do toType <- variable env to
@@ -179,7 +181,7 @@ module TypeChecker(typeCheck) where
           bodyType _ _ = reportError p ": for body must be unit"
 
   expression env (AST.LetExpression ds es p) =
-    foldM declaration env ds >>= flip expressionSequence es
+    foldM declaration env ds >>= flip expression (AST.SequenceExpression es p)
 
   expression env(AST.ArrayExpression ty size init p) =
     do arrayType <- resolveType env ty
@@ -192,10 +194,7 @@ module TypeChecker(typeCheck) where
 
   expression _ node = reportError node "\nCan't check expression"
 
-  expressionSequence :: Environment -> [AST.Expression] -> Either String Type
-  expressionSequence env = foldl (lastType $ expression env) (return Unit)
-    where lastType :: Monad m => (a -> m b) -> m b -> a -> m b
-          lastType f p x = p *> f x
+
 
 
 
