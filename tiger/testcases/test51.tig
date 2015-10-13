@@ -1,0 +1,2 @@
+/* valid while break */
+while (1 > 0) do break

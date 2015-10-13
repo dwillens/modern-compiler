@@ -1,0 +1,6 @@
+/* error: wrong field ag */
+let
+  type rec = {name: string, age: int}
+in
+  rec {name = "help", ag = 0}
+end

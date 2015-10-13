@@ -65,6 +65,18 @@ module TypeChecker(typeCheck) where
 
   expression env (AST.SequenceExpression es p) = expressionSequence env es
 
+  expression env (AST.RecordExpression ty fs p) =
+    do recType <- resolveType env ty
+       forM_ fs $ fieldType env recType
+       return recType
+    where fieldType :: Environment -> Type -> (AST.Identifier, AST.Expression) -> Either String Type
+          fieldType env (Record fs) ((name, _), init) =
+            case lookup name fs of
+              Just t -> expression env init >>= typesMatch matchError t
+              Nothing -> reportError p ": field not found"
+          fieldType _ _ _ = reportError p ": expected record type"
+          matchError = reportError p ": field init type must match"
+
   expression env (AST.AssignExpression to val p) =
     do toType <- variable env to
        valType <- expression env val

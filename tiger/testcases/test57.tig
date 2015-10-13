@@ -1,0 +1,6 @@
+/* error: wrong type for age */
+let
+  type rec = {name: string, age: int}
+in
+  rec {name = "help", age = "hola"}
+end
