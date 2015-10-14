@@ -3,8 +3,11 @@ module TypeChecker(typeCheck) where
   import Data.Either
   import Data.Foldable
   import qualified Data.Map.Strict as M
+  import qualified Data.List as L
   import Data.Maybe
   import Data.Unique
+
+  import Debug.Trace
 
   import qualified AbstractSyntaxTree as AST
 
@@ -216,18 +219,22 @@ module TypeChecker(typeCheck) where
   bindFunction :: Environment -> AST.FunctionDeclaration -> Either String Environment
   bindFunction env (AST.FunctionDeclaration name params result body p) =
     do resultType <- resolveResultType env result
-       formals <- forM params $ field env
-       let env' = insertValue env name $ Function (map snd formals) resultType
-       let env'' = foldl insertField env' formals
-       bodyType <- expression env'' body
-       typeMatch matchError bodyType resultType
-       return env'
-    where insertField env (name, ty) = insertValue env name $ Variable ty
-          matchError = reportError p ": body and result type must match"
-          field env (AST.Field name ty) = resolveType env ty >>= return . (,) name
+       paramTypes <- forM params $ paramType env
+       return $ insertValue env name $ Function paramTypes resultType
+    where paramType env (AST.Field _ ty) = resolveType env ty
           resolveResultType env (Just t) = resolveType env t
           resolveResultType _ Nothing = return Unit
 
+  checkFunction :: Environment -> AST.FunctionDeclaration -> Either String ()
+  checkFunction env (AST.FunctionDeclaration name params result body p) =
+    do (_, resultType) <- function env name
+       formals <- forM params $ field env
+       let env' = foldl insertField env formals
+       bodyType <- expression env' body
+       void $ typeMatch matchError bodyType resultType
+    where insertField env (name, ty) = insertValue env name $ Variable ty
+          matchError = reportError p ": body and result type must match"
+          field env (AST.Field name ty) = resolveType env ty >>= return . (,) name
 
   declaration :: Environment -> AST.Declaration -> Either String Environment
   declaration env (AST.VariableDeclaration name Nothing init p) =
@@ -246,4 +253,13 @@ module TypeChecker(typeCheck) where
 
   declaration env (AST.TypeDeclarationGroup ds) = foldM bindType env ds
 
-  declaration env (AST.FunctionDeclarationGroup ds) = foldM bindFunction env ds
+  declaration env (AST.FunctionDeclarationGroup ds) =
+    do distinct
+       env' <- foldM bindFunction env ds
+       forM_ ds $ checkFunction env'
+       return env'
+    where names = L.nub $ map fst $ map AST.functionName ds
+          p = AST.functionPosition $ head ds
+          distinct
+            | length ds == length names = return ()
+            | otherwise = reportError p ": functions have the same name"
